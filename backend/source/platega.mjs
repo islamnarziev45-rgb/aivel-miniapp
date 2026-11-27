@@ -54,9 +54,15 @@ export function createPlategaClient({ merchantId, secret, publicOrigin }) {
           signal: abort.signal
         });
         const result = await response.json().catch(() => ({}));
-        if (!response.ok || typeof result.transactionId !== "string" ||
+        const providerCode = [result?.code, result?.errorCode, result?.error]
+          .find(value => typeof value === "string" && /^[A-Za-z0-9_.-]{1,80}$/.test(value));
+        if (!response.ok) {
+          const code = providerCode ? `, code=${providerCode}` : "";
+          throw new Error(`Platega create request failed: HTTP ${response.status}, method=${Number(paymentMethod)}${code}`);
+        }
+        if (typeof result.transactionId !== "string" ||
             typeof result.redirect !== "string" || result.status !== "PENDING") {
-          throw new Error("Platega could not create payment");
+          throw new Error(`Platega create response invalid: HTTP ${response.status}, method=${Number(paymentMethod)}`);
         }
         const checkout = new URL(result.redirect);
         if (checkout.protocol !== "https:") throw new Error("Invalid Platega checkout URL");
