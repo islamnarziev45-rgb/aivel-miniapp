@@ -163,6 +163,11 @@ async function describe(customer, startParam = "") {
   let panelAccess = null;
   if (active && row.access_kind === "trial") {
     panelAccess = await marzban.getAccess(row);
+    if (!panelAccess.status) {
+      const link = await marzban.sync(row);
+      panelAccess = await marzban.getAccess(row);
+      panelAccess.link = link;
+    }
     const limitReached = Number(row.data_limit || 0) > 0 &&
       Number(panelAccess.usedTraffic || 0) >= Number(row.data_limit);
     if (panelAccess.status !== "active" || limitReached) {
