@@ -22,8 +22,8 @@ if (allowedOrigin.protocol !== "https:" || allowedOrigin.pathname !== "/" || all
 
 const subscriptions = openSubscriptions(databasePath);
 const marzban = createMarzbanClient({
-  apiOrigin: env.AIVEL_MARZBAN_API_ORIGIN || "http://127.0.0.1:8000",
-  username: env.AIVEL_MARZBAN_USERNAME,
+  apiOrigin: env.AIVEL_MARZBAN_API || env.AIVEL_MARZBAN_API_ORIGIN || "http://127.0.0.1:8000",
+  username: env.AIVEL_MARZBAN_USER || env.AIVEL_MARZBAN_USERNAME,
   password: env.AIVEL_MARZBAN_PASSWORD,
   inbound: env.AIVEL_MARZBAN_INBOUND,
   subscriptionOrigin: env.AIVEL_SUBSCRIPTION_ORIGIN
