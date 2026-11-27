@@ -207,7 +207,7 @@ async function handle(request, response) {
       const durationDays = Number(body.duration_days);
       const paymentMethod = Number(body.payment_method ?? 2);
       const amountKopecks = planAmounts[durationDays];
-      if (!Number.isInteger(durationDays) || !amountKopecks || ![2, 10].includes(paymentMethod)) {
+      if (!Number.isInteger(durationDays) || !amountKopecks || ![2, 11].includes(paymentMethod)) {
         return json(response, 400, { error: "invalid_plan_or_payment_method" }, cors);
       }
       bindReferral(telegram.id, telegram.startParam);
