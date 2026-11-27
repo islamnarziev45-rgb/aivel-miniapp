@@ -872,7 +872,7 @@
             </div>
             <div class="rounded-xl bg-black/30 p-2.5 border border-white/5">
               <div class="text-slate-400 text-[11px]" data-i18n="trafficLabel">Трафик</div>
-              <div class="font-bold text-white mt-0.5">0 ГБ <span class="text-slate-400 font-normal">из <span id="profileTrafficMax">5</span> ГБ</span></div>
+              <div class="font-bold text-white mt-0.5"><span id="profileTrafficUsed">0 ГБ</span> <span class="text-slate-400 font-normal">из <span id="profileTrafficMax">5</span> ГБ</span></div>
             </div>
           </div>
 
@@ -1697,20 +1697,27 @@
       const days = Math.max(0, Math.ceil(seconds / 86400));
       const bytes = Number(row.data_limit ?? data.data_limit ?? (accessType === "trial" ? 5 * 1024 ** 3 : 0));
       const limit = Math.max(0, Math.round(bytes / (1024 ** 3)));
+      const limitLabel = bytes > 0 ? String(limit) : "∞";
+      const usedBytes = Math.max(0, Number(row.used_traffic ?? data.used_traffic ?? 0));
+      const usedGb = usedBytes === 0 ? "0" : Number((usedBytes / (1024 ** 3)).toFixed(2)).toString();
+      const usedLabel = usedGb + " ГБ";
       appState.subscriptionUrl = row.subscription_url || data.subscription_url || row.link || data.link || "";
       appState.subscriptionStatus = status;
       appState.trialActivated = status === "active" && accessType === "trial";
       const d1 = document.getElementById("homeDaysVal"); if (d1) d1.textContent = String(days);
       const d2 = document.getElementById("profileDaysLeft"); if (d2) d2.textContent = String(days);
-      const t1 = document.getElementById("profileTrafficMax"); if (t1) t1.textContent = String(limit);
-      const t2 = document.getElementById("trafficScreenLimit"); if (t2) t2.textContent = String(limit);
+      const t0 = document.getElementById("homeTrafficVal"); if (t0) t0.textContent = limitLabel;
+      const t1 = document.getElementById("profileTrafficMax"); if (t1) t1.textContent = limitLabel;
+      const t2 = document.getElementById("trafficScreenLimit"); if (t2) t2.textContent = limitLabel;
+      const usedProfile = document.getElementById("profileTrafficUsed"); if (usedProfile) usedProfile.textContent = usedLabel;
+      const usedScreen = document.getElementById("trafficSpentVal"); if (usedScreen) usedScreen.textContent = usedLabel;
       const plan = document.getElementById("profilePlanName"); if (plan) plan.textContent = status === "active" ? (accessType === "trial" ? "Пробный активен" : "Подписка активна") : "Нет активной подписки";
       const referral = data.referral || {};
       const invited = document.getElementById("refInvitedCount"); if (invited) invited.textContent = String(Number(referral.invited_count ?? 0));
       const earned = document.getElementById("refEarnedDays"); if (earned) earned.textContent = String(Number(referral.earned_days ?? 0));
       const pill = document.getElementById("homeTrialPill");
       if (pill) { pill.textContent = status === "active" ? "Активна" : ((row.trial_available || data.trial_available) ? "Доступно" : "Неактивна"); }
-      const hint = document.getElementById("homeTrialStatusHint"); if (hint) hint.textContent = status === "active" ? "Осталось " + days + " дн. · лимит " + limit + " ГБ" : "2 дня и 5 ГБ бесплатно перед покупкой";
+      const hint = document.getElementById("homeTrialStatusHint"); if (hint) hint.textContent = status === "active" ? "Осталось " + days + " дн. · " + (bytes > 0 ? "лимит " + limit + " ГБ" : "без лимита") : "2 дня и 5 ГБ бесплатно перед покупкой";
       const ref = document.getElementById("refLinkInput"); if (ref && appState.telegramUserId) ref.value = "https://t.me/aivelvpn_bot?start=ref_" + appState.telegramUserId;
       return data;
     }
