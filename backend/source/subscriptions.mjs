@@ -115,7 +115,7 @@ export function openSubscriptions(filename) {
   return {
     createOrder(customer, currency, amount, durationDays = 30, paymentMethod = 2) {
       if (!Number.isInteger(durationDays) || !Object.hasOwn(planAmounts, durationDays) ||
-          (currency !== "RUB" || amount !== planAmounts[durationDays]) || ![2, 10].includes(Number(paymentMethod))) {
+          (currency !== "RUB" || amount !== planAmounts[durationDays]) || ![2, 11].includes(Number(paymentMethod))) {
         throw new Error("Invalid plan or amount");
       }
       const id = randomUUID();
