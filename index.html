@@ -740,7 +740,7 @@
             <p id="clientAppHint" class="text-xs text-slate-400 leading-relaxed">
               Установите клиент Happ для выбранной платформы, чтобы подключить профиль AIVEL VPN.
             </p>
-            <button onclick="showToast('Загрузка клиента для ' + appState.selectedPlatform)" class="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition">
+            <button id="downloadClientBtn" onclick="downloadClientAction()" class="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition">
               ⬇ <span id="downloadClientBtnText">Скачать Happ</span>
             </button>
           </div>
@@ -2035,23 +2035,73 @@
       document.getElementById('stepLineFill').style.width = '0%';
     }
 
+    const clientDownloadUrls = {
+      Happ: {
+        Android: "https://play.google.com/store/apps/details?id=com.happproxy",
+        iOS: "https://apps.apple.com/ru/app/happ-lite/id6799917773",
+        Windows: "https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe",
+        macOS: "https://github.com/Happ-proxy/happ-desktop/releases/latest/download/Happ.macOS.universal.dmg"
+      },
+      v2RayTun: {
+        Android: "https://play.google.com/store/apps/details?id=com.v2raytun.android",
+        iOS: "https://apps.apple.com/us/app/v2raytun/id6476628951",
+        Windows: "https://v2raytun.lxst-code.workers.dev/windows",
+        macOS: "https://github.com/LXST-CODE/v2RayTun/releases/latest"
+      },
+      INCY: {
+        Android: "https://play.google.com/store/apps/details?id=llc.itdev.incy",
+        iOS: "https://incy.cc/",
+        Windows: "https://github.com/INCY-DEV/incy-platforms/releases/download/latest/incy-windows-setup.exe",
+        macOS: "https://incy.cc/"
+      }
+    };
+
     function switchClientApp(clientName) {
+      if (!Object.hasOwn(clientDownloadUrls, clientName)) return;
       appState.selectedClient = clientName;
       ["Happ", "v2RayTun", "INCY"].forEach(name => {
         const id = name === "Happ" ? "clientTabHapp" : name === "v2RayTun" ? "clientTabV2Ray" : "clientTabIncy";
         const button = document.getElementById(id);
         if (button) button.className = name === clientName ? "py-2 rounded-xl bg-purple-600/40 border border-purple-400/50 text-xs font-bold text-white transition" : "py-2 rounded-xl text-xs font-semibold text-slate-400 transition";
       });
-      document.getElementById("downloadClientBtnText").textContent = clientName === "INCY" ? "Подключить INCY" : "Скачать " + clientName;
-      document.getElementById("clientAppHint").textContent = clientName === "INCY" ? "Нажмите «Подключить конфиг», чтобы импортировать подписку в INCY." : "Установите клиент " + clientName + " для подключения профиля AIVEL VPN.";
+      document.getElementById("downloadClientBtnText").textContent = "Скачать " + clientName;
+      document.getElementById("clientAppHint").textContent = clientName === "INCY"
+        ? "Скачайте INCY, затем нажмите «Подключиться», чтобы импортировать подписку."
+        : "Скачайте " + clientName + " для выбранного устройства, затем подключите профиль AIVEL VPN.";
+    }
+
+    function downloadClientAction() {
+      const url = clientDownloadUrls[appState.selectedClient]?.[appState.selectedPlatform];
+      if (!url) {
+        showToast("Для этого сочетания клиента и устройства откройте официальный сайт клиента.");
+        return;
+      }
+      const tg = window.Telegram && window.Telegram.WebApp;
+      if (tg && typeof tg.openLink === "function") tg.openLink(url);
+      else {
+        const opened = window.open(url, "_blank", "noopener,noreferrer");
+        if (!opened) window.location.href = url;
+      }
     }
 
     function connectConfigAction() {
       const url = appState.subscriptionUrl;
-      if (!url) { showToast("Сначала активируйте пробный период или оформите подписку."); return; }
-      if (appState.selectedClient === "Happ") window.location.href = "happ://add/" + url;
-      else if (appState.selectedClient === "INCY") window.location.href = "incy://import/" + encodeURIComponent(url);
-      else { copyTextToClipboard(url); showToast("Ссылка на подписку скопирована для v2RayTun."); }
+      if (!url) {
+        showToast("Сначала активируйте пробный период или оформите подписку.");
+        return;
+      }
+      const scheme = appState.selectedClient === "Happ"
+        ? "happ://add/" + url
+        : appState.selectedClient === "INCY"
+          ? "incy://import/" + url
+          : "v2raytun://import/" + encodeURIComponent(url);
+      window.location.href = scheme;
+      window.setTimeout(() => {
+        if (document.visibilityState === "visible") {
+          copyTextToClipboard(url);
+          showToast("Если клиент не открылся, ссылка подписки скопирована — вставьте её в " + appState.selectedClient + ".");
+        }
+      }, 1400);
     }
 
     function markSetupDone() {
