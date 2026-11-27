@@ -7,7 +7,7 @@ IMAGE="localhost/aivel-vpn-api:standalone"
 ENV_FILE="/opt/aivel-closed-test/bridge.env"
 DATA_DIR="/opt/aivel-closed-test/data"
 DB_FILE="${DATA_DIR}/orders.sqlite"
-PORT="8080"
+PORT="18080"
 UNIT_FILE="/etc/systemd/system/aivel-vpn-api.service"
 
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
@@ -61,7 +61,8 @@ for sidecar in "${DB_FILE}-wal" "${DB_FILE}-shm"; do
 done
 
 podman create --pull=never --name "$NEW_CONTAINER" --network=host \
-  --env-file "$ENV_FILE" -v "${DATA_DIR}:/data" "$IMAGE" >/dev/null
+  --env-file "$ENV_FILE" --env "AIVEL_API_PORT=${PORT}" \
+  -v "${DATA_DIR}:/data" "$IMAGE" >/dev/null
 new_started=1
 
 cat >"$UNIT_FILE" <<EOF
@@ -99,12 +100,8 @@ headers="$(curl -sS -D - -o /dev/null -X OPTIONS "http://127.0.0.1:${PORT}/minia
   -H 'Access-Control-Request-Headers: content-type,x-telegram-init-data')"
 grep -Fqi "Access-Control-Allow-Origin: ${origin}" <<<"$headers" || fail "Mini App CORS check failed."
 
-if podman update --help 2>&1 | grep -q -- '--restart'; then
-  if ! podman update --restart=no "$OLD_CONTAINER" >/dev/null 2>&1; then
-    printf 'WARNING: Could not change the old container restart policy; it remains stopped for now.\n' >&2
-  fi
-else
-  printf 'WARNING: This Podman cannot change restart policy. The old container is stopped; review/remove it after validating the new API.\n' >&2
+if ! podman update --restart=no "$OLD_CONTAINER" >/dev/null 2>&1; then
+  printf 'WARNING: Could not change the old container restart policy; it remains stopped for now. Check podman update --help before reboot.\n' >&2
 fi
 trap - EXIT
 printf 'Standalone API is healthy. Previous container is stopped. DB backup: %s\n' "$backup_dir"
