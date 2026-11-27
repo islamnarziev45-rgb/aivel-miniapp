@@ -30,12 +30,12 @@ rm -f "$archive"
 mkdir -p -m 700 "$BOT_DIR"
 umask 077
 tmp_env="${BOT_ENV}.tmp"
-awk -F= '$1 == "AIVEL_BOT_TOKEN" { print; found++ } END { if (found != 1) exit 1 }' "$ENV_SOURCE" > "$tmp_env" || fail "Expected exactly one AIVEL_BOT_TOKEN in the server env file."
+awk -F= '$1 == "AIVEL_BOT_TOKEN" { sub(/\r$/, ""); print; found++ } END { if (found != 1) exit 1 }' "$ENV_SOURCE" > "$tmp_env" || fail "Expected exactly one AIVEL_BOT_TOKEN in the server env file."
 printf 'MINI_APP_URL=%s\n' "$MINI_APP_URL" >> "$tmp_env"
 chmod 600 "$tmp_env"
 mv -f "$tmp_env" "$BOT_ENV"
 
-podman build --pull=never -t "$IMAGE" -f "$REPO_DIR/bot/Containerfile" "$REPO_DIR/bot"
+podman build -t "$IMAGE" -f "$REPO_DIR/bot/Containerfile" "$REPO_DIR/bot"
 podman create --pull=never --name "$CONTAINER" --network=host --env-file "$BOT_ENV" "$IMAGE" >/dev/null
 podman_bin="$(command -v podman)"
 cat > "$UNIT" <<EOF
