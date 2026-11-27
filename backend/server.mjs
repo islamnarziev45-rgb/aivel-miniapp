@@ -122,7 +122,7 @@ async function hideTrialButton(customer) {
   const filtered = markup.inline_keyboard.filter(row => !row.some(button => {
     const text = String(button?.text || "");
     const url = String(button?.web_app?.url || "");
-    return /бесплатный старт|принять приглашение/i.test(text) || /[?&]startapp=(trial|ref_)/i.test(url);
+    return /бесплатный старт/i.test(text) || /[?&]startapp=trial(?:&|$)/i.test(url);
   }));
   if (filtered.length === markup.inline_keyboard.length) return true;
   try {
@@ -237,7 +237,7 @@ async function handle(request, response) {
     try {
       const body = await readJson(request, 8192);
       const customer = String(body.telegram_id || "");
-      if (!/^[1-9]\\d{0,15}$/.test(customer)) return json(response, 400, { error: "invalid_telegram_id" });
+      if (!/^[1-9]\d{0,15}$/.test(customer)) return json(response, 400, { error: "invalid_telegram_id" });
       if (request.url === "/bot/trial-status") {
         const data = await describe(customer);
         return json(response, 200, { trial_available: data.trial_available });
