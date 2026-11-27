@@ -4,7 +4,7 @@ import asyncio
 import os
 import re
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
 from aiogram.types import (
     KeyboardButton,
@@ -59,10 +59,7 @@ def persistent_menu() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [
-                KeyboardButton(
-                    text="Главный экран 🏠",
-                    web_app=WebAppInfo(url=app_url("home")),
-                )
+                KeyboardButton(text="Главный экран 🏠")
             ]
         ],
         resize_keyboard=True,
@@ -70,14 +67,7 @@ def persistent_menu() -> ReplyKeyboardMarkup:
     )
 
 
-@dp.message(CommandStart())
-async def start(message: Message) -> None:
-    parts = (message.text or "").split(maxsplit=1)
-    payload = parts[1].strip() if len(parts) > 1 else ""
-    referrer_id = None
-    if re.fullmatch(r"ref_[1-9]\d{0,15}", payload):
-        referrer_id = payload[4:]
-
+async def show_home_menu(message: Message, referrer_id: str | None = None) -> None:
     await message.answer(
         "🛡 <b>AIVEL VPN</b>\n\n"
         + ("Вас пригласили в AIVEL VPN. Откройте приложение по кнопке ниже, чтобы приглашение засчиталось.\n\n" if referrer_id else "Откройте Mini App, чтобы активировать пробный период, управлять подпиской ")
@@ -88,9 +78,24 @@ async def start(message: Message) -> None:
         reply_markup=persistent_menu(),
     )
     await message.answer(
-        "Нажмите кнопку — она откроет Mini App:",
+        "Выберите действие — кнопки ниже откроют нужный раздел:",
         reply_markup=inline_menu(referrer_id),
     )
+
+
+@dp.message(CommandStart())
+async def start(message: Message) -> None:
+    parts = (message.text or "").split(maxsplit=1)
+    payload = parts[1].strip() if len(parts) > 1 else ""
+    referrer_id = None
+    if re.fullmatch(r"ref_[1-9]\d{0,15}", payload):
+        referrer_id = payload[4:]
+    await show_home_menu(message, referrer_id)
+
+
+@dp.message(F.text == "Главный экран 🏠")
+async def show_home_button(message: Message) -> None:
+    await show_home_menu(message)
 
 
 async def main() -> None:
