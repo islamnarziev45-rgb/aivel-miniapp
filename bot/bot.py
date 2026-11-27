@@ -5,6 +5,7 @@ import os
 import re
 
 from aiogram import Bot, Dispatcher, F
+from collections import defaultdict
 from aiogram.filters import CommandStart
 from aiogram.types import (
     KeyboardButton,
@@ -23,6 +24,7 @@ MINI_APP_URL = os.getenv(
 ).rstrip("/")
 
 dp = Dispatcher()
+home_menu_message_ids: dict[int, list[int]] = defaultdict(list)
 
 
 def app_url(screen: str) -> str:
@@ -67,8 +69,26 @@ def persistent_menu() -> ReplyKeyboardMarkup:
     )
 
 
+async def clear_previous_home_menu(message: Message, delete_request: bool = False) -> None:
+    chat_id = message.chat.id
+    for message_id in home_menu_message_ids.pop(chat_id, []):
+        try:
+            await message.bot.delete_message(chat_id, message_id)
+        except Exception:
+            pass
+    if delete_request:
+        try:
+            await message.delete()
+        except Exception:
+            pass
+
+
 async def show_home_menu(message: Message, referrer_id: str | None = None) -> None:
-    await message.answer(
+    await clear_previous_home_menu(
+        message,
+        delete_request=(message.text or "").strip() == "Главный экран 🏠",
+    )
+    greeting = await message.answer(
         "🛡 <b>AIVEL VPN</b>\n\n"
         + ("Вас пригласили в AIVEL VPN. Откройте приложение по кнопке ниже, чтобы приглашение засчиталось.\n\n" if referrer_id else "Откройте Mini App, чтобы активировать пробный период, управлять подпиской ")
         + ("" if referrer_id else "и подключить устройство.\n\n")
@@ -77,10 +97,11 @@ async def show_home_menu(message: Message, referrer_id: str | None = None) -> No
         parse_mode="HTML",
         reply_markup=persistent_menu(),
     )
-    await message.answer(
+    menu = await message.answer(
         "Выберите действие — кнопки ниже откроют нужный раздел:",
         reply_markup=inline_menu(referrer_id),
     )
+    home_menu_message_ids[message.chat.id] = [greeting.message_id, menu.message_id]
 
 
 @dp.message(CommandStart())
