@@ -612,7 +612,7 @@
             <div class="text-xs text-slate-400" data-i18n="twoStepsHint">Пара шагов — и VPN настроен</div>
           </div>
 
-          <button onclick="navigateTab('install')" class="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white flex items-center justify-center gap-2 transition">
+          <button onclick="navigateTab('install')" class="alive-cta w-full py-2.5 px-4 rounded-xl text-xs font-extrabold text-white flex items-center justify-center gap-2">
             <span data-i18n="connectBtn">Подключить</span>
             <span>→</span>
           </button>
@@ -1043,8 +1043,31 @@
         </div>
 
         <div class="grid grid-cols-2 gap-2">
-          <button onclick="handleTariffCheckout(2)" class="alive-cta py-3 px-2 rounded-xl text-xs font-extrabold text-white">СБП / QR · <span id="paySbpAmount">80 ₽</span></button>
-          <button onclick="handleTariffCheckout(10)" class="glass-panel py-3 px-2 rounded-xl text-xs font-extrabold text-white">Карта МИР · <span id="payCardAmount">80 ₽</span></button>
+          <button onclick="handleTariffCheckout(2)" class="alive-cta py-3 px-2 rounded-xl text-xs font-extrabold text-white flex flex-col items-center justify-center gap-1.5">
+            <span class="flex items-center justify-center gap-1.5" aria-label="Система быстрых платежей и QR-код">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 3.2 20.2 12 11.8 12Z" fill="#38bdf8"/>
+                <path d="M4 3.2v17.6L11.8 12Z" fill="#fbbf24"/>
+                <path d="M4 20.8 20.2 12h-8.4Z" fill="#34d399"/>
+              </svg>
+              <span>СБП</span><span class="text-white/70">/</span>
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>
+                <path d="M9 9h2v2H9zM14 9h2v2h-2zM9 14h2v2H9zM14 14h2v2h-2z"/>
+              </svg>
+              <span>QR</span>
+            </span>
+            <span id="paySbpAmount">80 ₽</span>
+          </button>
+          <button onclick="handleTariffCheckout(10)" class="alive-cta alive-cta-green py-3 px-2 rounded-xl text-xs font-extrabold text-white flex flex-col items-center justify-center gap-1.5">
+            <span class="flex items-center justify-center gap-1.5">
+              <span class="relative inline-flex rounded bg-white px-1.5 py-0.5 text-[9px] leading-none font-black tracking-tight text-emerald-700" aria-label="МИР">
+                МИР<span class="absolute -top-0.5 right-0.5 h-1 w-2 rounded-full bg-sky-500"></span>
+              </span>
+              <span>Карта МИР</span>
+            </span>
+            <span id="payCardAmount">80 ₽</span>
+          </button>
         </div>
 
         <div class="glass-panel rounded-2xl p-4 space-y-2.5">
