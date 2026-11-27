@@ -6,7 +6,7 @@ ENV_FILE="/opt/aivel-closed-test/bridge.env"
 RAW_BASE="https://raw.githubusercontent.com/islamnarziev45-rgb/aivel-miniapp/main/backend"
 
 fail() { printf 'ОШИБКА: %s\n' "$*" >&2; exit 1; }
-for command in curl sed mv cp python3; do
+for command in curl sed mv cp python3 podman; do
   command -v "$command" >/dev/null || fail "Не найдена команда: $command"
 done
 [[ -f "$ENV_FILE" ]] || fail "Не найден серверный env-файл: $ENV_FILE"
@@ -78,6 +78,10 @@ except Exception:
 PY
 
 unset NEW_MERCHANT NEW_SECRET
+
+podman run --rm --pull=never --network=host --env-file "$ENV_FILE" \
+  docker.io/library/node:24-bookworm-slim node -e 'fetch("https://app.platega.io/balance/all",{headers:{"X-MerchantId":process.env.AIVEL_PLATEGA_MERCHANT_ID,"X-Secret":process.env.AIVEL_PLATEGA_SECRET}}).then(r=>{console.log("Platega credentials HTTP",r.status);process.exitCode=r.status===200?0:1}).catch(e=>{console.error("Platega connection check failed",e.name);process.exitCode=1})'
+
 bash "${SCRIPT_DIR}/deploy-update.sh"
 trap - EXIT
 printf 'Новые данные Platega записаны, API обновлён. Env backup: %s\n' "$BACKUP_FILE"
