@@ -8,9 +8,10 @@ ENV_FILE="/opt/aivel-closed-test/bridge.env"
 DATA_DIR="/opt/aivel-closed-test/data"
 DB_FILE="${DATA_DIR}/orders.sqlite"
 PORT="8080"
+UNIT_FILE="/etc/systemd/system/aivel-vpn-api.service"
 
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
-for command in podman curl cp mkdir date grep sed; do command -v "$command" >/dev/null || fail "Missing command: $command"; done
+for command in podman curl cp mkdir date grep sed head systemctl; do command -v "$command" >/dev/null || fail "Missing command: $command"; done
 [[ -f "$ENV_FILE" ]] || fail "Missing server env file: $ENV_FILE"
 [[ -d "$DATA_DIR" && -f "$DB_FILE" ]] || fail "The existing database was not found at $DB_FILE; refusing cutover."
 podman container exists "$OLD_CONTAINER" || fail "Existing API container $OLD_CONTAINER was not found."
@@ -26,16 +27,24 @@ origin="$(sed -n 's/^AIVEL_MINIAPP_ORIGIN=//p' "$ENV_FILE" | head -n 1)"
 [[ "$origin" == https://* ]] || fail "Mini App origin in the env file is not HTTPS."
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+podman_bin="$(command -v podman)"
+[[ ! -e "$UNIT_FILE" ]] || fail "Systemd unit already exists: $UNIT_FILE; inspect it before continuing."
 podman build --pull=never -t "$IMAGE" -f "${script_dir}/Containerfile" "$script_dir"
 
 timestamp="$(date +%Y%m%d-%H%M%S)"
 backup_dir="/opt/aivel-closed-test/backups/standalone-${timestamp}"
 new_started=0
+unit_installed=0
 old_stopped=0
 rollback() {
   status=$?
   if (( status != 0 )); then
     printf 'Cutover failed; restoring the previous API container. Backup: %s\n' "$backup_dir" >&2
+    if (( unit_installed )); then
+      systemctl disable --now aivel-vpn-api.service >/dev/null 2>&1 || true
+      rm -f "$UNIT_FILE"
+      systemctl daemon-reload >/dev/null 2>&1 || true
+    fi
     if (( new_started )); then podman rm -f "$NEW_CONTAINER" >/dev/null 2>&1 || true; fi
     if (( old_stopped )); then podman start "$OLD_CONTAINER" >/dev/null 2>&1 || true; fi
   fi
@@ -51,9 +60,29 @@ for sidecar in "${DB_FILE}-wal" "${DB_FILE}-shm"; do
   [[ ! -e "$sidecar" ]] || cp -a "$sidecar" "$backup_dir/"
 done
 
-podman run -d --pull=never --name "$NEW_CONTAINER" --restart=always --network=host \
+podman create --pull=never --name "$NEW_CONTAINER" --network=host \
   --env-file "$ENV_FILE" -v "${DATA_DIR}:/data" "$IMAGE" >/dev/null
 new_started=1
+
+cat >"$UNIT_FILE" <<EOF
+[Unit]
+Description=AIVEL VPN standalone API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=${podman_bin} start --attach ${NEW_CONTAINER}
+ExecStop=${podman_bin} stop --time 20 ${NEW_CONTAINER}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+unit_installed=1
+systemctl daemon-reload
+systemctl enable --now aivel-vpn-api.service >/dev/null
 
 healthy=0
 for attempt in $(seq 1 20); do
@@ -70,7 +99,9 @@ headers="$(curl -sS -D - -o /dev/null -X OPTIONS "http://127.0.0.1:${PORT}/minia
   -H 'Access-Control-Request-Headers: content-type,x-telegram-init-data')"
 grep -Fqi "Access-Control-Allow-Origin: ${origin}" <<<"$headers" || fail "Mini App CORS check failed."
 
-podman update --restart=no "$OLD_CONTAINER" >/dev/null
+if ! podman update --restart=no "$OLD_CONTAINER" >/dev/null 2>&1; then
+  printf 'WARNING: Could not change the old container restart policy; it remains stopped for now. Check podman update --help before reboot.\n' >&2
+fi
 trap - EXIT
 printf 'Standalone API is healthy. Previous container is stopped. DB backup: %s\n' "$backup_dir"
 
