@@ -41,7 +41,7 @@ old_renamed=0
 new_created=0
 
 RAW_BASE="https://raw.githubusercontent.com/islamnarziev45-rgb/aivel-miniapp/main/backend"
-for file in Containerfile server.mjs source/subscriptions.mjs source/platega.mjs; do
+for file in Containerfile server.mjs source/subscriptions.mjs source/marzban.mjs source/platega.mjs; do
   curl -fsSL "${RAW_BASE}/${file}" -o "${SCRIPT_DIR}/${file}.new"
   mv "${SCRIPT_DIR}/${file}.new" "${SCRIPT_DIR}/${file}"
 done
