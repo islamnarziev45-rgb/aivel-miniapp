@@ -768,11 +768,11 @@
           <div class="grid grid-cols-2 gap-2.5">
             <div class="rounded-xl bg-black/30 border border-white/10 p-3">
               <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400" data-i18n="invitedLabel">ПРИГЛАШЕНО</div>
-              <div class="text-lg font-extrabold text-white mt-0.5">0 <span class="text-xs font-medium text-slate-400" data-i18n="peopleShort">чел.</span></div>
+              <div class="text-lg font-extrabold text-white mt-0.5"><span id="refInvitedCount">—</span> <span class="text-xs font-medium text-slate-400" data-i18n="peopleShort">чел.</span></div>
             </div>
             <div class="rounded-xl bg-black/30 border border-white/10 p-3">
               <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400" data-i18n="earnedLabel">ПОЛУЧЕНО</div>
-              <div class="text-lg font-extrabold text-emerald-400 mt-0.5">+0 <span class="text-xs font-medium text-slate-400" data-i18n="daysWord">дней</span></div>
+              <div class="text-lg font-extrabold text-emerald-400 mt-0.5">+<span id="refEarnedDays">—</span> <span class="text-xs font-medium text-slate-400" data-i18n="daysWord">дней</span></div>
             </div>
           </div>
 
@@ -1705,6 +1705,9 @@
       const t1 = document.getElementById("profileTrafficMax"); if (t1) t1.textContent = String(limit);
       const t2 = document.getElementById("trafficScreenLimit"); if (t2) t2.textContent = String(limit);
       const plan = document.getElementById("profilePlanName"); if (plan) plan.textContent = status === "active" ? (accessType === "trial" ? "Пробный активен" : "Подписка активна") : "Нет активной подписки";
+      const referral = data.referral || {};
+      const invited = document.getElementById("refInvitedCount"); if (invited) invited.textContent = String(Number(referral.invited_count ?? 0));
+      const earned = document.getElementById("refEarnedDays"); if (earned) earned.textContent = String(Number(referral.earned_days ?? 0));
       const pill = document.getElementById("homeTrialPill");
       if (pill) { pill.textContent = status === "active" ? "Активна" : ((row.trial_available || data.trial_available) ? "Доступно" : "Неактивна"); }
       const hint = document.getElementById("homeTrialStatusHint"); if (hint) hint.textContent = status === "active" ? "Осталось " + days + " дн. · лимит " + limit + " ГБ" : "2 дня и 5 ГБ бесплатно перед покупкой";
@@ -1729,8 +1732,9 @@
         if (user.id) document.getElementById("tgUserId").textContent = String(user.id);
       }
       const param = tg.initDataUnsafe && tg.initDataUnsafe.start_param;
-      const route = String(param || "").replace(/^ref_/, "");
-      if (["home", "install", "referral", "profile"].includes(route) || route.startsWith("ref_")) navigateTab(route.startsWith("ref_") ? "referral" : route);
+      const route = String(param || "");
+      if (route.startsWith("ref_")) navigateTab("referral");
+      else if (["home", "install", "referral", "profile"].includes(route)) navigateTab(route);
       else if (route === "tariffs") openSubscreen("tariffs");
       else if (route === "support" || route === "help") openSubscreen("help");
       else if (route === "agreement") openAgreementModal();
