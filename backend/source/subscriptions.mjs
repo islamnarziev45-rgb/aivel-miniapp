@@ -25,6 +25,13 @@ export function openSubscriptions(filename) {
       customer TEXT PRIMARY KEY,
       started_at INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS bot_menus (
+      customer TEXT PRIMARY KEY,
+      chat_id TEXT NOT NULL,
+      message_id INTEGER NOT NULL,
+      markup TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS referrals (
       invited_customer TEXT PRIMARY KEY,
       referrer_customer TEXT NOT NULL,
@@ -87,6 +94,12 @@ export function openSubscriptions(filename) {
   const lookupOrder = db.prepare("SELECT * FROM orders WHERE id = ?");
   const lookupLatestOrder = db.prepare("SELECT * FROM orders WHERE customer = ? ORDER BY rowid DESC LIMIT 1");
   const lookupTrial = db.prepare("SELECT started_at FROM trials WHERE customer = ?");
+  const lookupBotMenu = db.prepare("SELECT * FROM bot_menus WHERE customer = ?");
+  const saveBotMenu = db.prepare(`
+    INSERT INTO bot_menus (customer, chat_id, message_id, markup, updated_at) VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(customer) DO UPDATE SET chat_id=excluded.chat_id, message_id=excluded.message_id,
+      markup=excluded.markup, updated_at=excluded.updated_at
+  `);
   const lookupReferral = db.prepare("SELECT * FROM referrals WHERE invited_customer = ?");
   const referralStats = db.prepare(`
     SELECT COUNT(*) AS invited_count,
@@ -207,6 +220,29 @@ export function openSubscriptions(filename) {
         db.exec("ROLLBACK");
         throw error;
       }
+    },
+    canStartTrial(customer, now = Date.now() / 1000) {
+      const account = String(customer);
+      const row = lookup.get(account);
+      return !lookupTrial.get(account) && !row?.trial_used && !row?.paid_until &&
+        !(row?.expires_at > Math.floor(now));
+    },
+    expireTrial(customer, now = Date.now() / 1000) {
+      const account = String(customer);
+      const expiry = Math.floor(now);
+      db.prepare("UPDATE subscriptions SET expires_at = MIN(expires_at, ?) WHERE customer = ? AND access_kind = 'trial'")
+        .run(expiry, account);
+      return lookup.get(account);
+    },
+    getBotMenu(customer) {
+      return lookupBotMenu.get(String(customer));
+    },
+    saveBotMenu(customer, chatId, messageId, markup, now = Date.now() / 1000) {
+      saveBotMenu.run(String(customer), String(chatId), Number(messageId), JSON.stringify(markup), Math.floor(now));
+    },
+    updateBotMenuMarkup(customer, markup, now = Date.now() / 1000) {
+      db.prepare("UPDATE bot_menus SET markup = ?, updated_at = ? WHERE customer = ?")
+        .run(JSON.stringify(markup), Math.floor(now), String(customer));
     },
     startTrial(customer, now = Date.now() / 1000) {
       const account = String(customer);
