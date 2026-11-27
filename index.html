@@ -2,33 +2,47 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <!-- <<< MINI APP: viewport без зума, чтобы приложение выглядело как нативное внутри Telegram -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>AIVEL VPN</title>
-  <!-- <<< MINI APP: официальный скрипт Telegram, без него window.Telegram.WebApp не существует -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #08050f;
-      --card: #161026;
-      --card-2: #1d1532;
+      --bg: #07040e;
+      --surface: #150f24;
+      --surface-2: #1c1430;
+      --surface-3: #24193d;
       --border: rgba(168, 85, 247, 0.24);
-      --text: #f5f3ff;
-      --muted: #a699c2;
+      --border-bright: rgba(192, 132, 252, 0.65);
+      --text: #f6f3ff;
+      --muted: #a396c2;
       --purple: #7c3aed;
+      --violet: #6d28d9;
       --pink: #ec4899;
-      --magenta: #d946ef;
+      --magenta: #c026d3;
       --blue: #2563eb;
       --green: #10b981;
+      --glow-purple: 0 4px 18px rgba(124, 58, 237, 0.48);
+      --glow-pink: 0 8px 26px rgba(217, 70, 239, 0.36);
+      --glow-blue: 0 8px 22px rgba(37, 99, 235, 0.34);
     }
 
-    body.light-theme {
-      --bg: #f3effb;
-      --card: #ffffff;
-      --card-2: #f8f5ff;
-      --border: rgba(124, 58, 237, 0.22);
-      --text: #170f2b;
-      --muted: #5c5275;
+    body.accessible-light {
+      --bg: #f5f2fc;
+      --surface: #ffffff;
+      --surface-2: #f1ecfb;
+      --surface-3: #e7dff8;
+      --border: rgba(109, 40, 217, 0.22);
+      --border-bright: rgba(109, 40, 217, 0.7);
+      --text: #150d29;
+      --muted: #564c70;
+      --glow-purple: 0 3px 10px rgba(109, 40, 217, 0.18);
+      --glow-pink: 0 4px 12px rgba(192, 38, 211, 0.18);
+      --glow-blue: 0 4px 12px rgba(37, 99, 235, 0.18);
+    }
+
+    body.accessible-light * {
+      transition: none !important;
+      animation: none !important;
     }
 
     * {
@@ -40,13 +54,17 @@
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background:
-        radial-gradient(circle at 50% -8%, rgba(124, 58, 237, 0.42), transparent 55%),
-        radial-gradient(circle at 90% 30%, rgba(217, 70, 239, 0.14), transparent 45%),
+        radial-gradient(circle at 50% -6%, rgba(124, 58, 237, 0.44), transparent 52%),
+        radial-gradient(circle at 88% 24%, rgba(217, 70, 239, 0.15), transparent 45%),
         var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 12px 12px 86px;
+      padding: 0 12px 92px;
       transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    body.accessible-light {
+      background: var(--bg);
     }
 
     .app {
@@ -54,35 +72,46 @@
       margin: 0 auto;
     }
 
-    /* Top bar */
+    /* Sticky Top Chrome */
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 25;
+      padding: 10px 0 8px;
+      background: linear-gradient(180deg, var(--bg) 78%, transparent 100%);
+      backdrop-filter: blur(10px);
+    }
+
     .topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 6px;
+      margin-bottom: 8px;
     }
 
     .brand {
       display: flex;
       align-items: center;
       gap: 8px;
+      cursor: pointer;
     }
 
     .brand-logo {
       width: 34px;
       height: 34px;
-      border-radius: 10px;
+      border-radius: 11px;
       background: linear-gradient(135deg, #7c3aed, #ec4899);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 16px;
-      box-shadow: 0 6px 18px rgba(124, 58, 237, 0.4);
       color: #fff;
+      box-shadow: var(--glow-purple);
+      flex-shrink: 0;
     }
 
-    .brand-name {
+    .brand-title {
       font-size: 14px;
       font-weight: 800;
       line-height: 1.05;
@@ -92,11 +121,11 @@
     .top-actions {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
 
-    .chip-btn {
-      background: var(--card);
+    .pill-btn {
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
       border-radius: 999px;
@@ -106,40 +135,40 @@
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       white-space: nowrap;
     }
 
-    .chip-btn.primary {
+    .pill-btn.active-glow {
       background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      border-color: rgba(196, 181, 253, 0.4);
+      border-color: var(--border-bright);
       color: #fff;
+      box-shadow: var(--glow-purple);
     }
 
-    .icon-circle {
+    .circle-btn {
       width: 30px;
       height: 30px;
       border-radius: 999px;
-      background: var(--card);
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       font-size: 13px;
       cursor: pointer;
+      flex-shrink: 0;
     }
 
-    /* Region & Language pills */
-    .regions {
+    .lang-row {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 6px;
-      margin-bottom: 12px;
     }
 
-    .region-pill {
-      background: var(--card);
+    .lang-pill {
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--muted);
       border-radius: 999px;
@@ -153,21 +182,26 @@
       gap: 3px;
     }
 
-    .region-pill.active {
+    .lang-pill.active {
       background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      border-color: var(--border-bright);
       color: #fff;
-      border-color: rgba(196, 181, 253, 0.45);
-      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
+      box-shadow: var(--glow-purple);
     }
 
-    /* Cards */
+    /* Cards & Surfaces */
     .card {
-      background: var(--card);
+      background: linear-gradient(180deg, var(--surface-2), var(--surface));
       border: 1px solid var(--border);
       border-radius: 20px;
       padding: 15px;
       margin-bottom: 12px;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    body.accessible-light .card {
+      background: var(--surface);
+      box-shadow: 0 4px 14px rgba(21, 13, 41, 0.06);
     }
 
     .row-between {
@@ -177,15 +211,30 @@
       gap: 8px;
     }
 
-    .card-title {
+    .title-md {
       margin: 0;
       font-size: 14px;
       font-weight: 700;
     }
 
-    .card-sub {
+    .title-lg {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .sub-txt {
       margin: 3px 0 0;
       font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .micro-upper {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
       color: var(--muted);
     }
 
@@ -194,21 +243,27 @@
       border-radius: 999px;
       font-size: 11px;
       font-weight: 700;
-      background: rgba(124, 58, 237, 0.22);
-      border: 1px solid rgba(192, 132, 252, 0.35);
+      background: rgba(124, 58, 237, 0.24);
+      border: 1px solid rgba(192, 132, 252, 0.4);
       color: var(--text);
       white-space: nowrap;
     }
 
-    .badge.active-badge {
-      background: rgba(16, 185, 129, 0.18);
+    .badge.ok {
+      background: rgba(16, 185, 129, 0.16);
       border-color: rgba(52, 211, 153, 0.45);
       color: #34d399;
     }
 
-    .btn-grad {
+    .badge.beta {
+      background: rgba(124, 58, 237, 0.22);
+      color: #c4b5fd;
+    }
+
+    /* Buttons */
+    .btn-gradient {
       width: 100%;
-      margin-top: 13px;
+      margin-top: 12px;
       border: 0;
       border-radius: 14px;
       padding: 13px 14px;
@@ -216,12 +271,13 @@
       font-weight: 700;
       color: #fff;
       background: linear-gradient(90deg, #7c3aed 0%, #c026d3 55%, #ec4899 100%);
-      box-shadow: 0 8px 22px rgba(217, 70, 239, 0.32);
+      box-shadow: var(--glow-pink);
       cursor: pointer;
     }
 
-    .btn-grad.activated {
-      background: linear-gradient(90deg, #6d28d9 0%, #9333ea 100%);
+    .btn-gradient.done {
+      background: linear-gradient(90deg, #6d28d9, #8b5cf6);
+      box-shadow: var(--glow-purple);
     }
 
     .grid-2 {
@@ -239,6 +295,7 @@
       font-weight: 700;
       color: #fff;
       background: linear-gradient(90deg, #9333ea, #db2777);
+      box-shadow: 0 6px 18px rgba(219, 39, 119, 0.28);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -254,6 +311,7 @@
       font-weight: 700;
       color: #fff;
       background: linear-gradient(90deg, #1d4ed8, #2563eb);
+      box-shadow: var(--glow-blue);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -261,67 +319,70 @@
       gap: 5px;
     }
 
-    .btn-dark {
+    .btn-surface {
       width: 100%;
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 10px;
+      padding: 10px 12px;
       font-size: 12px;
       font-weight: 700;
       color: var(--text);
-      background: var(--card-2);
+      background: var(--surface-3);
       cursor: pointer;
     }
 
-    .mini-box {
+    .ico-sq {
       width: 34px;
       height: 34px;
-      border-radius: 10px;
+      border-radius: 11px;
       background: rgba(124, 58, 237, 0.18);
-      border: 1px solid rgba(168, 85, 247, 0.3);
-      display: flex;
+      border: 1px solid rgba(168, 85, 247, 0.34);
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       font-size: 15px;
-      margin-bottom: 10px;
+      flex-shrink: 0;
     }
 
-    .big-num {
+    .stat-num {
       font-size: 22px;
       font-weight: 800;
+      margin-top: 8px;
     }
 
-    .big-num span {
+    .stat-num span {
       font-size: 12px;
       font-weight: 600;
       color: var(--muted);
     }
 
-    .os-list {
+    /* OS pills & tiles */
+    .os-pills {
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
     }
 
-    .os-btn {
+    .os-pill {
       border: 1px solid var(--border);
-      background: var(--card-2);
+      background: var(--surface-3);
       color: var(--muted);
       border-radius: 999px;
-      padding: 6px 12px;
+      padding: 6px 11px;
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
     }
 
-    .os-btn.active {
+    .os-pill.active {
       background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      border-color: var(--border-bright);
       color: #fff;
-      border-color: rgba(196, 181, 253, 0.45);
+      box-shadow: var(--glow-purple);
     }
 
-    .tile-card {
-      background: var(--card);
+    .tile {
+      background: linear-gradient(180deg, var(--surface-2), var(--surface));
       border: 1px solid var(--border);
       border-radius: 18px;
       padding: 14px;
@@ -330,17 +391,21 @@
       cursor: pointer;
     }
 
-    .news-item {
+    body.accessible-light .tile {
+      background: var(--surface);
+    }
+
+    .news-row {
       padding: 10px 0;
       border-top: 1px solid var(--border);
     }
 
-    .news-item:first-of-type {
+    .news-row:first-of-type {
       border-top: 0;
       padding-top: 6px;
     }
 
-    /* Tariffs page */
+    /* Tariffs */
     .tariff-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -348,23 +413,22 @@
       margin: 12px 0;
     }
 
-    .tariff-box {
-      background: var(--card-2);
+    .tariff-card {
+      background: var(--surface-3);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 10px 8px;
+      padding: 10px 7px;
       text-align: center;
       cursor: pointer;
-      position: relative;
     }
 
-    .tariff-box.selected {
-      background: linear-gradient(180deg, rgba(124, 58, 237, 0.35), var(--card-2));
-      border-color: #a855f7;
-      box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.4);
+    .tariff-card.selected {
+      background: linear-gradient(180deg, rgba(124, 58, 237, 0.34), var(--surface-3));
+      border-color: var(--border-bright);
+      box-shadow: var(--glow-purple);
     }
 
-    .tag-pill {
+    .tag {
       display: inline-block;
       font-size: 9px;
       font-weight: 800;
@@ -376,49 +440,181 @@
       color: var(--text);
     }
 
-    .tag-pill.pop {
+    .tag.pop {
       background: #7c3aed;
       color: #fff;
     }
 
-    .tag-pill.good {
+    .tag.good {
       background: rgba(16, 185, 129, 0.22);
       color: #34d399;
     }
 
-    .price-main {
+    .tariff-price {
       font-size: 16px;
       font-weight: 800;
     }
 
-    .summary-box {
-      background: var(--card-2);
+    .summary-panel {
+      background: var(--surface-3);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 11px 12px;
       font-size: 12px;
-      margin-top: 8px;
     }
 
-    .benefits-list {
+    .check-list {
       list-style: none;
       padding: 0;
       margin: 10px 0 0;
       font-size: 12px;
-      color: var(--text);
     }
 
-    .benefits-list li {
+    .check-list li {
       margin-bottom: 7px;
       display: flex;
       gap: 7px;
+      align-items: center;
     }
 
-    /* Profile page */
-    .profile-head {
+    /* Stepper Install */
+    .stepper {
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .step-dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-dot.active {
+      background: linear-gradient(135deg, #7c3aed, #9333ea);
+      border-color: var(--border-bright);
+      color: #fff;
+      box-shadow: var(--glow-purple);
+    }
+
+    .step-line {
+      width: 44px;
+      height: 2px;
+      background: var(--border);
+    }
+
+    .device-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .device-box {
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .device-box.selected {
+      border-color: var(--border-bright);
+      background: rgba(124, 58, 237, 0.22);
+      box-shadow: var(--glow-purple);
+    }
+
+    /* Locations & Traffic */
+    .loc-item {
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 12px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .loc-item.active {
+      border-color: var(--border-bright);
+      background: rgba(124, 58, 237, 0.22);
+    }
+
+    .seg-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: var(--surface-3);
+      padding: 4px;
+      border-radius: 13px;
+      margin: 12px 0;
+    }
+
+    .seg-btn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 7px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .seg-btn.active {
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: #fff;
+    }
+
+    /* Referral & Profile */
+    .ref-toggle {
+      display: inline-flex;
+      gap: 4px;
+      background: var(--surface-3);
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .ref-tab {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 4px 9px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .ref-tab.active {
+      background: #7c3aed;
+      color: #fff;
+    }
+
+    .link-box {
+      margin-top: 8px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      word-break: break-all;
+      color: var(--text);
     }
 
     .avatar {
@@ -426,23 +622,16 @@
       height: 44px;
       border-radius: 14px;
       background: linear-gradient(135deg, #7c3aed, #6366f1);
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
-      font-size: 15px;
-      color: #fff;
+      flex-shrink: 0;
     }
 
-    .sub-box {
-      background: var(--card-2);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 13px;
-      margin-top: 12px;
-    }
-
-    .list-row {
+    .menu-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -451,7 +640,7 @@
       cursor: pointer;
     }
 
-    .list-row:first-child {
+    .menu-row:first-child {
       border-top: 0;
       padding-top: 2px;
     }
@@ -464,15 +653,15 @@
       display: block;
     }
 
-    /* Bottom nav */
-    .bottom-dock {
+    /* Bottom Dock */
+    .dock {
       position: fixed;
       left: 50%;
       bottom: 10px;
       transform: translateX(-50%);
       width: calc(100% - 24px);
       max-width: 416px;
-      background: var(--card);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 22px;
       padding: 6px;
@@ -480,10 +669,10 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 4px;
       z-index: 30;
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
     }
 
-    .dock-item {
+    .dock-btn {
       border: 0;
       background: transparent;
       color: var(--muted);
@@ -498,30 +687,32 @@
       gap: 2px;
     }
 
-    .dock-item.active {
-      background: rgba(124, 58, 237, 0.34);
+    .dock-btn.active {
+      background: rgba(124, 58, 237, 0.35);
       color: var(--text);
+      box-shadow: inset 0 0 0 1px rgba(196, 181, 253, 0.28);
     }
 
+    /* Toast */
     .toast {
       position: fixed;
       left: 50%;
-      bottom: 76px;
-      transform: translateX(-50%) translateY(12px);
-      background: var(--card-2);
+      bottom: 78px;
+      transform: translateX(-50%) translateY(14px);
+      background: var(--surface-3);
       color: var(--text);
-      border: 1px solid var(--border);
-      padding: 10px 15px;
-      border-radius: 12px;
+      border: 1px solid var(--border-bright);
+      padding: 10px 16px;
+      border-radius: 13px;
       font-size: 12px;
       font-weight: 700;
       opacity: 0;
       pointer-events: none;
       transition: all 0.2s ease;
-      z-index: 50;
+      z-index: 60;
       max-width: 92%;
       text-align: center;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
     }
 
     .toast.show {
@@ -532,26 +723,26 @@
 </head>
 <body>
   <div class="app">
-    <div class="topbar">
-      <div class="brand">
-        <div class="brand-logo">🛡️</div>
-        <div class="brand-name">AIVEL<br/>VPN</div>
+    <div class="sticky-header">
+      <div class="topbar">
+        <div class="brand" onclick="openPage('home')">
+          <div class="brand-logo">🛡️</div>
+          <div class="brand-title">AIVEL<br/>VPN</div>
+        </div>
+        <div class="top-actions">
+          <button class="pill-btn active-glow" onclick="openBot()">💬 <span id="lbl_bot">Чат-бот</span></button>
+          <button class="pill-btn" onclick="openSupport()">🎧 <span id="lbl_sup">Поддержка</span></button>
+          <button class="circle-btn" onclick="showToast('Тёмная тема')" title="Тема">🌙</button>
+        </div>
       </div>
-      <div class="top-actions">
-        <!-- <<< MINI APP: кнопка вызывает openBot() -> tg.openTelegramLink -->
-        <button class="chip-btn primary" onclick="openBot()">💬 <span id="t_bot">Чат-бот</span></button>
-        <!-- <<< MINI APP: кнопка вызывает openSupport() -> tg.openTelegramLink -->
-        <button class="chip-btn" onclick="openSupport()">🎧 <span id="t_sup">Поддержка</span></button>
-        <button class="icon-circle" id="themeToggleBtn" onclick="toggleTheme()" title="Тема">🌙</button>
-      </div>
-    </div>
 
-    <div class="regions">
-      <button class="region-pill active" data-lang="RU" onclick="setLang('RU')">🇷🇺 RU</button>
-      <button class="region-pill" data-lang="UZ" onclick="setLang('UZ')">🇺🇿 UZ</button>
-      <button class="region-pill" data-lang="TJ" onclick="setLang('TJ')">🇹🇯 TJ</button>
-      <button class="region-pill" data-lang="KZ" onclick="setLang('KZ')">🇰🇿 KZ</button>
-      <button class="region-pill" data-lang="KG" onclick="setLang('KG')">🇰🇬 KG</button>
+      <div class="lang-row">
+        <button class="lang-pill active" data-lang="RU" onclick="setLang('RU')">🇷🇺 RU</button>
+        <button class="lang-pill" data-lang="UZ" onclick="setLang('UZ')">UZ</button>
+        <button class="lang-pill" data-lang="TJ" onclick="setLang('TJ')">TJ</button>
+        <button class="lang-pill" data-lang="KZ" onclick="setLang('KZ')">KZ</button>
+        <button class="lang-pill" data-lang="KG" onclick="setLang('KG')">KG</button>
+      </div>
     </div>
 
     <!-- ГЛАВНАЯ -->
@@ -559,96 +750,94 @@
       <div class="card">
         <div class="row-between">
           <div>
-            <h2 class="card-title" id="t_trial_title">AIVEL VPN • Пробный доступ</h2>
-            <p class="card-sub" id="t_trial_sub">2 дня и 5 ГБ бесплатно перед покупкой</p>
+            <h2 class="title-md" id="lbl_trial_title">AIVEL VPN • Пробный доступ</h2>
+            <p class="sub-txt" id="lbl_trial_sub">2 дня и 5 ГБ бесплатно перед покупкой</p>
           </div>
           <span class="badge" id="trialBadge">Доступно</span>
         </div>
 
-        <!-- <<< MINI APP: activateTrial() отправляет данные боту через tg.sendData -->
-        <button class="btn-grad" id="trialBtn" onclick="activateTrial()">⚡ Активировать 2 дня бесплатно</button>
+        <button class="btn-gradient" id="trialBtn" onclick="activateTrial()">⚡ Активировать 2 дня бесплатно</button>
 
         <div class="grid-2" style="margin-top:10px;margin-bottom:0;">
-          <button class="btn-pink" onclick="switchPage('tariffs')">💳 <span id="t_buy">Купить/Продлить</span></button>
-          <button class="btn-blue" onclick="switchPage('profile')">🔗 <span id="t_mysub">Моя подписка</span></button>
+          <button class="btn-pink" onclick="openPage('tariffs')">💳 <span id="lbl_buy">Купить/Продлить</span></button>
+          <button class="btn-blue" onclick="openPage('profile')">🔗 <span id="lbl_mysub">Моя подписка</span></button>
         </div>
       </div>
 
       <div class="grid-2">
         <div class="card" style="margin-bottom:0;">
-          <div class="mini-box">📅</div>
-          <div class="big-num" id="daysDisplay">2 <span id="t_days_lbl">дня</span></div>
-          <div class="card-sub" style="margin-bottom:10px;" id="t_period_lbl">пробный период</div>
-          <button class="btn-pink" style="width:100%;" onclick="switchPage('tariffs')" id="t_extend">Продлить</button>
+          <div class="ico-sq">📅</div>
+          <div class="stat-num" id="homeDays">2 <span id="lbl_days">дня</span></div>
+          <div class="sub-txt" style="margin-bottom:10px;" id="lbl_period">пробный период</div>
+          <button class="btn-pink" style="width:100%;" onclick="openPage('tariffs')" id="lbl_extend">Продлить</button>
         </div>
         <div class="card" style="margin-bottom:0;">
-          <div class="mini-box">⇅</div>
-          <div class="big-num" id="trafficDisplay">0 <span>/ 5 ГБ</span></div>
-          <div class="card-sub" style="margin-bottom:10px;" id="t_limit_lbl">пробный лимит</div>
-          <button class="btn-dark" onclick="switchPage('tariffs')" id="t_increase">Увеличить</button>
+          <div class="ico-sq">⇅</div>
+          <div class="stat-num">0 <span>/ 5 ГБ</span></div>
+          <div class="sub-txt" style="margin-bottom:10px;" id="lbl_limit">пробный лимит</div>
+          <button class="btn-surface" onclick="openPage('tariffs')" id="lbl_increase">Увеличить</button>
         </div>
       </div>
 
       <div class="card">
         <div class="row-between">
-          <div class="os-list">
-            <button class="os-btn active" data-os="Android" onclick="selectOs('Android')">Android</button>
-            <button class="os-btn" data-os="iOS" onclick="selectOs('iOS')">iOS</button>
-            <button class="os-btn" data-os="macOS" onclick="selectOs('macOS')">macOS</button>
-            <button class="os-btn" data-os="Windows" onclick="selectOs('Windows')">Windows</button>
+          <div class="os-pills">
+            <button class="os-pill active" data-os="Android" onclick="setHomeOs('Android')">Android</button>
+            <button class="os-pill" data-os="iOS" onclick="setHomeOs('iOS')">iOS</button>
+            <button class="os-pill" data-os="macOS" onclick="setHomeOs('macOS')">macOS</button>
+            <button class="os-pill" data-os="Windows" onclick="setHomeOs('Windows')">Windows</button>
           </div>
-          <span style="color:var(--muted);cursor:pointer;" onclick="switchPage('install')">›</span>
+          <span style="color:var(--muted);cursor:pointer;font-size:16px;" onclick="openPage('install')">›</span>
         </div>
-        <div class="card-title" style="margin-top:12px;font-size:15px;" id="osName">Android</div>
-        <div class="card-sub" style="margin-bottom:11px;" id="t_os_sub">Пара шагов — и VPN настроен</div>
-        <button class="btn-dark" onclick="switchPage('install')" id="t_connect">Подключить →</button>
+        <div class="title-lg" style="margin-top:12px;font-size:15px;" id="homeOsTitle">Android</div>
+        <div class="sub-txt" style="margin-bottom:11px;" id="lbl_os_sub">Пара шагов — и VPN настроен</div>
+        <button class="btn-surface" onclick="openPage('install')" id="lbl_connect">Подключить →</button>
       </div>
 
       <div class="grid-2">
-        <button class="tile-card" onclick="showToast('Доступные регионы: RU, UZ, TJ, KZ, KG')">
-          <div class="mini-box" style="margin-bottom:0;">🌐</div>
-          <div class="card-title" style="margin-top:10px;" id="t_loc">Локации</div>
-          <p class="card-sub" id="t_loc_sub">Страны и города</p>
+        <button class="tile" onclick="openPage('locations')">
+          <div class="ico-sq">🌐</div>
+          <div class="title-md" style="margin-top:10px;" id="lbl_loc">Локации</div>
+          <p class="sub-txt" id="lbl_loc_sub">Страны и города</p>
         </button>
-        <button class="tile-card" onclick="switchPage('profile')">
-          <div class="mini-box" style="margin-bottom:0;">💻</div>
-          <div class="card-title" style="margin-top:10px;" id="t_dev">Устройства</div>
-          <p class="card-sub" id="t_dev_sub">Что подключено</p>
+        <button class="tile" onclick="openPage('profile')">
+          <div class="ico-sq">💻</div>
+          <div class="title-md" style="margin-top:10px;" id="lbl_dev">Устройства</div>
+          <p class="sub-txt" id="lbl_dev_sub">Что подключено</p>
         </button>
       </div>
 
       <div class="grid-2">
-        <button class="tile-card" onclick="switchPage('profile')">
-          <div class="mini-box" style="margin-bottom:0;">📊</div>
-          <div class="card-title" style="margin-top:10px;" id="t_stat">Статистика</div>
-          <p class="card-sub" id="t_stat_sub">Потребление ГБ</p>
+        <button class="tile" onclick="openPage('traffic')">
+          <div class="ico-sq">📊</div>
+          <div class="title-md" style="margin-top:10px;" id="lbl_stat">Статистика</div>
+          <p class="sub-txt" id="lbl_stat_sub">Потребление ГБ</p>
         </button>
-        <button class="tile-card" onclick="switchPage('referral')">
-          <div class="mini-box" style="margin-bottom:0;">🎁</div>
-          <div class="card-title" style="margin-top:10px;" id="t_inv">Пригласить</div>
-          <p class="card-sub" id="t_inv_sub">+7 дней за друга</p>
+        <button class="tile" onclick="openPage('referral')">
+          <div class="ico-sq">🎁</div>
+          <div class="title-md" style="margin-top:10px;" id="lbl_inv">Пригласить</div>
+          <p class="sub-txt" id="lbl_inv_sub">+7 дней за друга</p>
         </button>
       </div>
 
       <div class="card">
         <div class="row-between" style="margin-bottom:4px;">
-          <h3 class="card-title" id="t_news">Последние новости</h3>
-          <!-- <<< MINI APP: openBot() -> tg.openTelegramLink -->
-          <span class="chip-btn" onclick="openBot()">Канал ↗</span>
+          <h3 class="title-md" id="lbl_news">Последние новости</h3>
+          <span class="pill-btn" onclick="openBot()">Канал ↗</span>
         </div>
-        <div class="news-item">
+        <div class="news-row">
           <div class="row-between">
             <strong style="font-size:12px;">Высокая скорость и обход ограничений</strong>
-            <span class="card-sub">26.11</span>
+            <span class="sub-txt">26.11</span>
           </div>
-          <p class="card-sub">Добавлены оптимизированные узлы с низким пингом для мессенджеров, видео и браузера.</p>
+          <p class="sub-txt">Добавлены оптимизированные узлы с низким пингом для мессенджеров, видео и браузера.</p>
         </div>
-        <div class="news-item">
+        <div class="news-row">
           <div class="row-between">
             <strong style="font-size:12px;">Пробный период 2 дня и 5 ГБ</strong>
-            <span class="card-sub">20.11</span>
+            <span class="sub-txt">20.11</span>
           </div>
-          <p class="card-sub">Проверьте работу AIVEL VPN на любом устройстве перед выбором тарифа.</p>
+          <p class="sub-txt">Проверьте работу AIVEL VPN на любом устройстве перед выбором тарифа.</p>
         </div>
       </div>
     </section>
@@ -656,55 +845,53 @@
     <!-- ТАРИФЫ -->
     <section id="page-tariffs" class="page">
       <div class="card">
-        <div class="row-between">
-          <div>
-            <h2 class="card-title" style="font-size:16px;">Продление подписки</h2>
-            <p class="card-sub">ВЫБЕРИТЕ ПЕРИОД</p>
-          </div>
+        <div class="row-between" style="margin-bottom:10px;">
+          <button class="pill-btn" onclick="openPage('home')">← Назад</button>
           <span class="badge">AIVEL VPN</span>
         </div>
+        <h2 class="title-lg">Продление подписки</h2>
+        <div class="micro-upper" style="margin-top:4px;">ВЫБЕРИТЕ ПЕРИОД</div>
 
         <div class="tariff-grid">
-          <div class="tariff-box selected" data-plan="1 месяц" data-days="30" data-price="80" onclick="pickTariff(this)">
-            <div class="tag-pill">СТАРТ</div>
-            <div class="price-main">80 ₽</div>
-            <div class="card-sub">1 месяц</div>
-            <div class="card-sub" style="color:#a78bfa;">80 ₽ / мес</div>
+          <div class="tariff-card selected" data-plan="1 месяц" data-days="30" data-price="80" onclick="selectTariff(this)">
+            <div class="tag">СТАРТ</div>
+            <div class="tariff-price">80 ₽</div>
+            <div class="sub-txt">1 месяц</div>
+            <div class="sub-txt" style="color:#a78bfa;">80 ₽ / мес</div>
           </div>
-          <div class="tariff-box" data-plan="3 месяца" data-days="90" data-price="190" onclick="pickTariff(this)">
-            <div class="tag-pill pop">Популярный</div>
-            <div class="price-main">190 ₽</div>
-            <div class="card-sub">3 месяца</div>
-            <div class="card-sub" style="color:#a78bfa;">~63 ₽ / мес</div>
+          <div class="tariff-card" data-plan="3 месяца" data-days="90" data-price="190" onclick="selectTariff(this)">
+            <div class="tag pop">Популярный</div>
+            <div class="tariff-price">190 ₽</div>
+            <div class="sub-txt">3 месяца</div>
+            <div class="sub-txt" style="color:#a78bfa;">~63 ₽ / мес</div>
           </div>
-          <div class="tariff-box" data-plan="6 месяцев" data-days="180" data-price="490" onclick="pickTariff(this)">
-            <div class="tag-pill good">ВЫГОДНО</div>
-            <div class="price-main">490 ₽</div>
-            <div class="card-sub">6 месяцев</div>
-            <div class="card-sub" style="color:#a78bfa;">~82 ₽ / мес</div>
+          <div class="tariff-card" data-plan="6 месяцев" data-days="180" data-price="490" onclick="selectTariff(this)">
+            <div class="tag good">ВЫГОДНО</div>
+            <div class="tariff-price">490 ₽</div>
+            <div class="sub-txt">6 месяцев</div>
+            <div class="sub-txt" style="color:#a78bfa;">~82 ₽ / мес</div>
           </div>
         </div>
 
-        <div class="summary-box">
+        <div class="summary-panel">
           <div class="row-between">
-            <span class="card-sub">Выбранный тариф:</span>
-            <strong id="selectedPlanLabel">1 месяц — 80 ₽</strong>
+            <span class="sub-txt">Выбранный тариф:</span>
+            <strong id="tariffSummaryText">1 месяц — 80 ₽</strong>
           </div>
           <div class="row-between" style="margin-top:6px;">
-            <span class="card-sub">Устройства:</span>
+            <span class="sub-txt">Устройства:</span>
             <span>Android, iOS, macOS, Windows</span>
           </div>
         </div>
 
-        <!-- <<< MINI APP: paySelected() отправляет выбранный тариф боту через tg.sendData -->
-        <button class="btn-blue" style="width:100%;margin-top:12px;padding:12px;font-size:13px;" id="payActionBtn" onclick="paySelected()">
+        <button class="btn-blue" style="width:100%;margin-top:12px;padding:12px;font-size:13px;" id="tariffPayBtn" onclick="confirmTariff()">
           Подключить · 80 ₽ →
         </button>
       </div>
 
       <div class="card">
-        <h3 class="card-title">Почему AIVEL VPN?</h3>
-        <ul class="benefits-list">
+        <h3 class="title-md">Почему AIVEL VPN?</h3>
+        <ul class="check-list">
           <li>✅ Стабильное высокоскоростное соединение</li>
           <li>✅ Поддержка Android, iOS, macOS и Windows</li>
           <li>✅ Пробный доступ 2 дня и 5 ГБ перед оплатой</li>
@@ -713,184 +900,379 @@
       </div>
     </section>
 
-    <!-- УСТАНОВКА -->
+    <!-- УСТАНОВКА (2 ШАГА) -->
     <section id="page-install" class="page">
       <div class="card">
-        <h2 class="card-title" style="font-size:16px;">Установка • <span id="installOsHeading">Android</span></h2>
-        <p class="card-sub" id="installGuideText">1. Установите клиент (v2rayNG, Streisand, V2Box или Hiddify). 2. Активируйте подписку или триал. 3. Вставьте ключ и подключитесь.</p>
-        <div class="sub-box" style="font-family:monospace;font-size:11px;word-break:break-all;" id="keyText">
-          vless://aivel-vpn-subscription-key
+        <div class="stepper">
+          <span class="step-dot active" id="dotStep1">1</span>
+          <span class="step-line"></span>
+          <span class="step-dot" id="dotStep2">2</span>
         </div>
-        <button class="btn-grad" onclick="copyKey()">📋 Скопировать ключ</button>
+
+        <div id="installStep1">
+          <h2 class="title-lg">Выберите устройство</h2>
+          <p class="sub-txt">На какое устройство подключаем AIVEL VPN?</p>
+
+          <div class="device-grid">
+            <div class="device-box selected" data-dev="Android" onclick="pickDevice(this)">
+              <div style="font-size:22px;">🤖</div>
+              <div class="title-md" style="margin-top:6px;">Android</div>
+            </div>
+            <div class="device-box" data-dev="iOS" onclick="pickDevice(this)">
+              <div style="font-size:22px;">📱</div>
+              <div class="title-md" style="margin-top:6px;">iOS</div>
+            </div>
+            <div class="device-box" data-dev="macOS" onclick="pickDevice(this)">
+              <div style="font-size:22px;">💻</div>
+              <div class="title-md" style="margin-top:6px;">macOS</div>
+            </div>
+            <div class="device-box" data-dev="Windows" onclick="pickDevice(this)">
+              <div style="font-size:22px;">🖥️</div>
+              <div class="title-md" style="margin-top:6px;">Windows</div>
+            </div>
+          </div>
+
+          <button class="btn-gradient" onclick="goInstallStep(2)">Продолжить</button>
+        </div>
+
+        <div id="installStep2" style="display:none;">
+          <h2 class="title-lg">Подключение • <span id="chosenDeviceTitle">Android</span></h2>
+          <p class="sub-txt" id="chosenDeviceDesc">Установите v2rayNG или Hiddify, скопируйте ключ ниже и добавьте профиль.</p>
+          <div class="link-box" id="installKeyBox">vless://aivel-vpn-key-android-ru@aivel.example:443</div>
+          <button class="btn-gradient" onclick="copyInstallKey()">📋 Скопировать ключ</button>
+          <button class="btn-surface" style="margin-top:8px;" onclick="goInstallStep(1)">← Назад к выбору устройства</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЛОКАЦИИ -->
+    <section id="page-locations" class="page">
+      <div class="card">
+        <h2 class="title-lg">Локации</h2>
+        <p class="sub-txt">Выберите оптимальный регион подключения в приложении AIVEL VPN</p>
+
+        <div class="loc-item active" onclick="chooseLocation('Авто', this)">
+          <div>
+            <div class="title-md">Автоматический регион</div>
+            <div class="sub-txt">Наименьшая задержка</div>
+          </div>
+          <span class="badge">Авто</span>
+        </div>
+
+        <div class="micro-upper" style="margin-top:14px;">ЕВРОПА</div>
+
+        <div class="loc-item" onclick="chooseLocation('Нидерланды (Амстердам)', this)">
+          <div>
+            <div class="title-md">🇳🇱 Амстердам / Нидерланды (NL)</div>
+            <div class="sub-txt">Высокая пропускная способность</div>
+          </div>
+          <span class="sub-txt">NL</span>
+        </div>
+
+        <div class="loc-item" onclick="chooseLocation('Германия (Франкфурт)', this)">
+          <div>
+            <div class="title-md">🇩🇪 Франкфурт / Германия (DE)</div>
+            <div class="sub-txt">Стабильный европейский узел</div>
+          </div>
+          <span class="sub-txt">DE</span>
+        </div>
+
+        <div class="loc-item" onclick="chooseLocation('Финляндия (Хельсинки)', this)">
+          <div>
+            <div class="title-md">🇫🇮 Хельсинки / Финляндия (FI)</div>
+            <div class="sub-txt">Быстрый маршрут</div>
+          </div>
+          <span class="sub-txt">FI</span>
+        </div>
+
+        <button class="btn-pink" style="width:100%;margin-top:14px;padding:12px;font-size:13px;" onclick="openPage('install')">
+          К установке →
+        </button>
+      </div>
+    </section>
+
+    <!-- ПОТРЕБЛЕНИЕ ТРАФИКА -->
+    <section id="page-traffic" class="page">
+      <div class="card">
+        <div class="row-between">
+          <h2 class="title-lg">Потребление трафика</h2>
+          <span class="badge beta">Бета</span>
+        </div>
+
+        <div class="seg-tabs">
+          <button class="seg-btn active" onclick="setTrafficPeriod(this, 'Текущий период')">Текущий период</button>
+          <button class="seg-btn" onclick="setTrafficPeriod(this, 'Прошлый период')">Прошлый период</button>
+        </div>
+
+        <div class="summary-panel">
+          <div class="micro-upper">ИЗРАСХОДОВАНО</div>
+          <div class="stat-num" style="margin-top:4px;">0 ГБ <span>из 5 ГБ</span></div>
+          <div class="sub-txt">Пробный лимит: 2 дня и 5 ГБ</div>
+        </div>
+
+        <div class="micro-upper" style="margin-top:14px;">ПО ДНЯМ</div>
+        <div class="loc-item" style="cursor:default;margin-top:6px;">
+          <span class="sub-txt">Сегодня</span>
+          <strong style="font-size:12px;">0.00 ГБ</strong>
+        </div>
       </div>
     </section>
 
     <!-- РЕФЕРАЛКА -->
     <section id="page-referral" class="page">
       <div class="card">
-        <h2 class="card-title" style="font-size:16px;">Пригласить друзей</h2>
-        <p class="card-sub">Получайте +7 дней за каждого приглашённого друга после активации доступа.</p>
-        <!-- <<< MINI APP: ссылка подставляется из tg.initDataUnsafe.user.id в init() -->
-        <div class="sub-box" style="font-family:monospace;font-size:12px;word-break:break-all;" id="refLinkText">
-          https://t.me/aivelvpn_bot?start=ref_1944225789
+        <div class="row-between">
+          <div>
+            <div class="micro-upper">БОНУСНАЯ ПРОГРАММА</div>
+            <h2 class="title-lg" style="margin-top:2px;">Бесплатный VPN</h2>
+            <p class="sub-txt">Приглашайте друзей и получайте бесплатные дни подписки</p>
+          </div>
+          <div class="ico-sq" style="width:42px;height:42px;font-size:20px;">🎁</div>
         </div>
-        <button class="btn-grad" onclick="copyRef()">🔗 Скопировать реферальную ссылку</button>
+
+        <div class="grid-2" style="margin-top:12px;margin-bottom:0;">
+          <div class="summary-panel">
+            <div class="micro-upper">ПРИГЛАШЕНО</div>
+            <div class="stat-num" style="font-size:18px;margin-top:4px;">0 <span>чел.</span></div>
+          </div>
+          <div class="summary-panel">
+            <div class="micro-upper">ПОЛУЧЕНО</div>
+            <div class="stat-num" style="font-size:18px;margin-top:4px;">+0 <span>дня</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row-between">
+          <span class="micro-upper">ВАША ССЫЛКА</span>
+          <div class="ref-toggle">
+            <button class="ref-tab active" data-ref="bot" onclick="setRefType('bot')">Бот</button>
+            <button class="ref-tab" data-ref="site" onclick="setRefType('site')">Сайт</button>
+          </div>
+        </div>
+
+        <div class="link-box" id="refUrlValue">https://t.me/aivelvpn_bot?start=ref_1944225789</div>
+
+        <button class="btn-surface" style="margin-top:8px;" onclick="copyRefUrl()">📋 Копировать</button>
+        <button class="btn-gradient" onclick="shareRefUrl()">📤 Поделиться</button>
+      </div>
+
+      <div class="card">
+        <h3 class="title-md">Как это работает</h3>
+        <div class="loc-item" style="cursor:default;">
+          <span class="sub-txt"><strong style="color:var(--text);">1.</strong> Поделитесь ссылкой с другом</span>
+          <span class="sub-txt">Шаг 1</span>
+        </div>
+        <div class="loc-item" style="cursor:default;">
+          <span class="sub-txt"><strong style="color:var(--text);">2.</strong> Друг запускает бота и пробует VPN</span>
+          <span class="sub-txt">Шаг 2</span>
+        </div>
+        <div class="loc-item" style="cursor:default;">
+          <span class="sub-txt"><strong style="color:var(--text);">3.</strong> Вы получаете бонус к подписке</span>
+          <span class="badge ok">+7 дней</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="title-md">Партнёрская программа</h3>
+        <p class="sub-txt">Приглашайте друзей и получайте +7 дней за каждого активного пользователя.</p>
       </div>
     </section>
 
     <!-- ПРОФИЛЬ -->
     <section id="page-profile" class="page">
       <div class="card">
-        <div class="profile-head">
-          <!-- <<< MINI APP: аватар, имя и ID подставляются из данных пользователя Telegram в init() -->
+        <div class="row-between" style="justify-content:flex-start;gap:12px;">
           <div class="avatar" id="profAvatar">AV</div>
           <div>
-            <div class="card-title" style="font-size:15px;" id="profName">@aivel_user</div>
-            <div class="card-sub"><span id="profIdText">1944225789</span> <span style="cursor:pointer;" onclick="copyId()">📋</span></div>
+            <div class="title-lg" style="font-size:15px;" id="profUsername">@aivel_user</div>
+            <div class="sub-txt"><span id="profIdNum">1944225789</span> <span style="cursor:pointer;" onclick="copyUserId()">📋</span></div>
           </div>
         </div>
 
-        <div class="sub-box">
+        <div class="summary-panel" style="margin-top:12px;">
           <div class="row-between">
-            <span class="card-sub" style="font-weight:700;">ПОДПИСКА</span>
-            <span class="badge active-badge" id="profStatusBadge">● Активна</span>
+            <span class="micro-upper">ПОДПИСКА</span>
+            <span class="badge ok" id="profStatusTag">● Активна</span>
           </div>
-          <div class="card-title" style="font-size:17px;margin-top:4px;" id="profPlanName">Пробный</div>
+          <div class="title-lg" style="margin-top:4px;" id="profPlanTitle">Пробный активен</div>
           <div class="grid-2" style="margin-top:10px;margin-bottom:10px;">
             <div>
-              <div class="card-sub">Срок действия</div>
-              <strong style="font-size:13px;" id="profDays">2 дня</strong>
+              <div class="sub-txt">Срок действия</div>
+              <strong style="font-size:13px;" id="profDaysText">2 дня</strong>
             </div>
             <div>
-              <div class="card-sub">Трафик</div>
+              <div class="sub-txt">Трафик</div>
               <strong style="font-size:13px;">0 ГБ из 5 ГБ</strong>
             </div>
           </div>
-          <button class="btn-grad" style="margin-top:0;" onclick="switchPage('tariffs')">Продлить</button>
+          <button class="btn-gradient" style="margin-top:0;" onclick="openPage('tariffs')" id="lbl_prof_extend">Продлить</button>
         </div>
       </div>
 
       <div class="card">
-        <div class="list-row" onclick="showToast('Потребление трафика: 0 ГБ из 5 ГБ')">
+        <div class="menu-row" onclick="openPage('traffic')">
           <div>
-            <div class="card-title">Потребление трафика</div>
-            <div class="card-sub">По дням и серверам</div>
+            <div class="title-md">Потребление трафика</div>
+            <div class="sub-txt">По дням и серверам</div>
           </div>
           <span style="color:var(--muted);">›</span>
         </div>
-        <div class="list-row" onclick="switchPage('install')">
+        <div class="menu-row" onclick="openPage('install')">
           <div>
-            <div class="card-title">Устройства</div>
-            <div class="card-sub">0 подключено</div>
+            <div class="title-md">Устройства</div>
+            <div class="sub-txt">0 подключено</div>
           </div>
           <span style="color:var(--muted);">›</span>
         </div>
-        <div class="list-row" onclick="showToast('Локации: RU, UZ, TJ, KZ, KG')">
+        <div class="menu-row" onclick="openPage('locations')">
           <div>
-            <div class="card-title">Локации</div>
-            <div class="card-sub">Страны и города</div>
+            <div class="title-md">Локации</div>
+            <div class="sub-txt">Страны и города</div>
           </div>
           <span style="color:var(--muted);">›</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="title-md">Язык / Тил / Забон</div>
+        <div class="lang-row" style="margin-top:10px;">
+          <button class="lang-pill active" data-lang="RU" onclick="setLang('RU')">RU</button>
+          <button class="lang-pill" data-lang="UZ" onclick="setLang('UZ')">UZ</button>
+          <button class="lang-pill" data-lang="TJ" onclick="setLang('TJ')">TJ</button>
+          <button class="lang-pill" data-lang="KG" onclick="setLang('KG')">KG</button>
+          <button class="lang-pill" data-lang="KZ" onclick="setLang('KZ')">KZ</button>
+        </div>
+        <div class="sub-txt" style="margin-top:10px;" id="lbl_lang_selected">Выбран язык: Русский</div>
+      </div>
+
+      <div class="card">
+        <div class="menu-row" onclick="openBot()">
+          <span class="title-md">Сообщество AIVEL VPN</span>
+          <span style="color:var(--muted);">›</span>
+        </div>
+        <div class="menu-row" onclick="showToast('Пользовательское соглашение AIVEL VPN')">
+          <span class="title-md">Пользовательское соглашение</span>
+          <span style="color:var(--muted);">›</span>
+        </div>
+        <div class="menu-row" onclick="openPage('install')">
+          <span class="title-md">Помощь</span>
+          <span style="color:var(--muted);">›</span>
+        </div>
+        <div class="menu-row" onclick="openSupport()">
+          <span class="title-md">Поддержка</span>
+          <span style="color:var(--muted);">›</span>
+        </div>
+        <div class="menu-row" onclick="toggleAccessibleTheme()">
+          <div>
+            <div class="title-md">Версия для слабовидящих</div>
+            <div class="sub-txt">Светлый фон, без анимаций</div>
+          </div>
+          <span class="badge" id="visionBadge">Выкл</span>
         </div>
       </div>
     </section>
   </div>
 
-  <nav class="bottom-dock">
-    <button class="dock-item active" data-nav="home" onclick="switchPage('home')">
-      <span>🏠</span><span id="d_home">Главная</span>
+  <nav class="dock">
+    <button class="dock-btn active" data-dock="home" onclick="openPage('home')">
+      <span style="font-size:16px;">🏠</span><span id="dock_home">Главная</span>
     </button>
-    <button class="dock-item" data-nav="install" onclick="switchPage('install')">
-      <span>⬇️</span><span id="d_inst">Установить</span>
+    <button class="dock-btn" data-dock="install" onclick="openPage('install')">
+      <span style="font-size:16px;">⬇️</span><span id="dock_inst">Установить</span>
     </button>
-    <button class="dock-item" data-nav="referral" onclick="switchPage('referral')">
-      <span>🔗</span><span id="d_ref">Рефералка</span>
+    <button class="dock-btn" data-dock="referral" onclick="openPage('referral')">
+      <span style="font-size:16px;">🔗</span><span id="dock_ref">Рефералка</span>
     </button>
-    <button class="dock-item" data-nav="profile" onclick="switchPage('profile')">
-      <span>👤</span><span id="d_prof">Профиль</span>
+    <button class="dock-btn" data-dock="profile" onclick="openPage('profile')">
+      <span style="font-size:16px;">👤</span><span id="dock_prof">Профиль</span>
     </button>
   </nav>
 
   <div class="toast" id="toast"></div>
 
   <script>
-    // <<< MINI APP: получаем объект Telegram WebApp (если страница открыта не в Telegram, будет null)
     const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tg) {
-      tg.ready();   // <<< MINI APP: сообщаем Telegram, что приложение загружено
-      tg.expand();  // <<< MINI APP: раскрываем приложение на весь экран
+      tg.ready();
+      tg.expand();
     }
 
-    let trialActivated = false;
-    let currentDays = 2;
     let currentLang = "RU";
-    let currentUserId = "1944225789";
-    let selectedPlan = { title: "1 месяц", days: 30, price: 80 };
+    let trialActive = false;
+    let currentDays = 2;
+    let userId = "1944225789";
+    let selectedDevice = "Android";
+    let refKind = "bot";
+    let chosenTariff = { plan: "1 месяц", days: 30, price: 80 };
 
-    const OS_GUIDES = {
-      Android: "1. Установите клиент (v2rayNG, Streisand, V2Box или Hiddify). 2. Активируйте подписку или триал. 3. Вставьте ключ и подключитесь.",
-      iOS: "1. Установите Streisand, V2Box или Hiddify из App Store. 2. Скопируйте ключ подписки. 3. Добавьте профиль в приложение и включите VPN.",
-      macOS: "1. Установите Hiddify или V2Box для macOS. 2. Скопируйте ключ доступа. 3. Импортируйте конфигурацию и активируйте подключение.",
-      Windows: "1. Скачайте и установите Hiddify или v2rayN для Windows. 2. Скопируйте ключ из приложения. 3. Добавьте профиль и подключитесь."
-    };
-
-    const I18N = {
+    const LANGS = {
       RU: {
-        bot: "Чат-бот", sup: "Поддержка", trialTitle: "AIVEL VPN • Пробный доступ",
-        trialSub: "2 дня и 5 ГБ бесплатно перед покупкой", avail: "Доступно", activeBadge: "Активен",
-        trialBtn: "⚡ Активировать 2 дня бесплатно", trialDoneBtn: "✅ Пробный период (2 дня / 5 ГБ) активирован",
-        trialToast: "Пробный период (2 дня / 5 ГБ) уже активирован!",
-        buy: "Купить/Продлить", mysub: "Моя подписка", daysLbl: "дня", periodLbl: "пробный период",
-        extend: "Продлить", limitLbl: "пробный лимит", increase: "Увеличить",
-        osSub: "Пара шагов — и VPN настроен", connect: "Подключить →",
+        langName: "Русский", bot: "Чат-бот", sup: "Поддержка",
+        trialTitle: "AIVEL VPN • Пробный доступ", trialSub: "2 дня и 5 ГБ бесплатно перед покупкой",
+        avail: "Доступно", activeTag: "Активен",
+        trialBtn: "⚡ Активировать 2 дня бесплатно",
+        trialDone: "✅ Пробный период активен (2 дня / 5 ГБ)",
+        trialAlready: "Пробный период (2 дня / 5 ГБ) уже активирован!",
+        buy: "Купить/Продлить", mysub: "Моя подписка", daysWord: "дня",
+        period: "пробный период", extend: "Продлить", limit: "пробный лимит",
+        increase: "Увеличить", osSub: "Пара шагов — и VPN настроен", connect: "Подключить →",
         loc: "Локации", locSub: "Страны и города", dev: "Устройства", devSub: "Что подключено",
         stat: "Статистика", statSub: "Потребление ГБ", inv: "Пригласить", invSub: "+7 дней за друга",
         news: "Последние новости", dHome: "Главная", dInst: "Установить", dRef: "Рефералка", dProf: "Профиль"
       },
       UZ: {
-        bot: "Chat-bot", sup: "Yordam", trialTitle: "AIVEL VPN • Sinov davri",
-        trialSub: "Xarid qilishdan oldin 2 kun va 5 GB bepul", avail: "Mavjud", activeBadge: "Faol",
-        trialBtn: "⚡ 2 kunni bepul faollashtirish", trialDoneBtn: "✅ Sinov davri (2 kun / 5 GB) faollashtirilgan",
-        trialToast: "Sinov davri (2 kun / 5 GB) allaqachon faollashtirilgan!",
-        buy: "Sotib olish / Uzaytirish", mysub: "Obunam", daysLbl: "kun", periodLbl: "sinov muddati",
-        extend: "Uzaytirish", limitLbl: "sinov limiti", increase: "Oshirish",
-        osSub: "Ikki qadam — va VPN tayyor", connect: "Ulash →",
+        langName: "O'zbekcha", bot: "Chat-bot", sup: "Yordam",
+        trialTitle: "AIVEL VPN • Sinov davri", trialSub: "Xarid qilishdan oldin 2 kun va 5 GB bepul",
+        avail: "Mavjud", activeTag: "Faol",
+        trialBtn: "⚡ 2 kunni bepul faollashtirish",
+        trialDone: "✅ Sinov davri faol (2 kun / 5 GB)",
+        trialAlready: "Sinov davri (2 kun / 5 GB) allaqachon faollashtirilgan!",
+        buy: "Sotib olish / Uzaytirish", mysub: "Obunam", daysWord: "kun",
+        period: "sinov muddati", extend: "Uzaytirish", limit: "sinov limiti",
+        increase: "Oshirish", osSub: "Ikki qadam — va VPN tayyor", connect: "Ulash →",
         loc: "Lokatsiyalar", locSub: "Davlatlar va shaharlar", dev: "Qurilmalar", devSub: "Ulangan qurilmalar",
         stat: "Statistika", statSub: "GB sarfi", inv: "Taklif qilish", invSub: "Do'st uchun +7 kun",
         news: "So'nggi yangiliklar", dHome: "Asosiy", dInst: "O'rnatish", dRef: "Referal", dProf: "Profil"
       },
       TJ: {
-        bot: "Чат-бот", sup: "Дастгирӣ", trialTitle: "AIVEL VPN • Дастрасии озмоишӣ",
-        trialSub: "2 рӯз ва 5 ГБ ройгон пеш аз харид", avail: "Дастрас", activeBadge: "Фаъол",
-        trialBtn: "⚡ 2 рӯзро ройгон фаъол кунед", trialDoneBtn: "✅ Давраи озмоишӣ (2 рӯз / 5 ГБ) фаъол аст",
-        trialToast: "Давраи озмоишӣ (2 рӯз / 5 ГБ) аллакай фаъол шудааст!",
-        buy: "Хариди / Тамдид", mysub: "Обунаи ман", daysLbl: "рӯз", periodLbl: "мӯҳлати санҷиш",
-        extend: "Тамдид кардан", limitLbl: "лимити санҷиш", increase: "Зиёд кардан",
-        osSub: "Ду қадам — ва VPN омода аст", connect: "Пайваст шудан →",
+        langName: "Тоҷикӣ", bot: "Чат-бот", sup: "Дастгирӣ",
+        trialTitle: "AIVEL VPN • Дастрасии озмоишӣ", trialSub: "2 рӯз ва 5 ГБ ройгон пеш аз харид",
+        avail: "Дастрас", activeTag: "Фаъол",
+        trialBtn: "⚡ 2 рӯзро ройгон фаъол кунед",
+        trialDone: "✅ Давраи озмоишӣ фаъол аст (2 рӯз / 5 ГБ)",
+        trialAlready: "Давраи озмоишӣ (2 рӯз / 5 ГБ) аллакай фаъол шудааст!",
+        buy: "Хариди / Тамдид", mysub: "Обунаи ман", daysWord: "рӯз",
+        period: "мӯҳлати санҷиш", extend: "Тамдид кардан", limit: "лимити санҷиш",
+        increase: "Зиёд кардан", osSub: "Ду қадам — ва VPN омода аст", connect: "Пайваст шудан →",
         loc: "Ҷойгиршавӣ", locSub: "Кишварҳо ва шаҳрҳо", dev: "Дастгоҳҳо", devSub: "Дастгоҳҳои пайваст",
         stat: "Омор", statSub: "Истифодаи ГБ", inv: "Даъват кардан", invSub: "+7 рӯз барои дӯст",
         news: "Навигариҳои охирин", dHome: "Асосӣ", dInst: "Насб кардан", dRef: "Реферал", dProf: "Профил"
       },
       KZ: {
-        bot: "Чат-бот", sup: "Қолдау", trialTitle: "AIVEL VPN • Сынақ кезеңі",
-        trialSub: "Сатып алмас бұрын 2 күн және 5 ГБ тегін", avail: "Қолжетімді", activeBadge: "Белсенді",
-        trialBtn: "⚡ 2 күнді тегін қосу", trialDoneBtn: "✅ Сынақ кезеңі (2 күн / 5 ГБ) қосулы",
-        trialToast: "Сынақ кезеңі (2 күн / 5 ГБ) әлдеқашан қосылған!",
-        buy: "Сатып алу / Ұзарту", mysub: "Жазылымым", daysLbl: "күн", periodLbl: "сынақ мерзімі",
-        extend: "Ұзарту", limitLbl: "сынақ лимиті", increase: "Көбейту",
-        osSub: "Екі қадам — VPN дайын", connect: "Қосылу →",
+        langName: "Қазақша", bot: "Чат-бот", sup: "Қолдау",
+        trialTitle: "AIVEL VPN • Сынақ кезеңі", trialSub: "Сатып алмас бұрын 2 күн және 5 ГБ тегін",
+        avail: "Қолжетімді", activeTag: "Белсенді",
+        trialBtn: "⚡ 2 күнді тегін қосу",
+        trialDone: "✅ Сынақ кезеңі қосулы (2 күн / 5 ГБ)",
+        trialAlready: "Сынақ кезеңі (2 күн / 5 ГБ) әлдеқашан қосылған!",
+        buy: "Сатып алу / Ұзарту", mysub: "Жазылымым", daysWord: "күн",
+        period: "сынақ мерзімі", extend: "Ұзарту", limit: "сынақ лимиті",
+        increase: "Көбейту", osSub: "Екі қадам — VPN дайын", connect: "Қосылу →",
         loc: "Локациялар", locSub: "Елдер мен қалалар", dev: "Құрылғылар", devSub: "Қосылған құрылғылар",
         stat: "Статистика", statSub: "ГБ жұмсау", inv: "Шақыру", invSub: "Дос үшін +7 күн",
         news: "Соңғы жаңалықтар", dHome: "Басты", dInst: "Орнату", dRef: "Реферал", dProf: "Профиль"
       },
       KG: {
-        bot: "Чат-бот", sup: "Колдоо", trialTitle: "AIVEL VPN • Сыноо мөөнөтү",
-        trialSub: "Сатып алардан мурун 2 күн жана 5 ГБ акысыз", avail: "Жеткиликтүү", activeBadge: "Активдүү",
-        trialBtn: "⚡ 2 күндү бекер жандыруу", trialDoneBtn: "✅ Сыноо мөөнөтү (2 күн / 5 ГБ) жандырылды",
-        trialToast: "Сыноо мөөнөтү (2 күн / 5 ГБ) мурунтан эле жандырылган!",
-        buy: "Сатып алуу / Узартуу", mysub: "Жазылуум", daysLbl: "күн", periodLbl: "сыноо мөөнөтү",
-        extend: "Узартуу", limitLbl: "сыноо лимити", increase: "Көбөйтүү",
-        osSub: "Эки кадам — VPN даяр", connect: "Туташуу →",
+        langName: "Кыргызча", bot: "Чат-бот", sup: "Колдоо",
+        trialTitle: "AIVEL VPN • Сыноо мөөнөтү", trialSub: "Сатып алардан мурун 2 күн жана 5 ГБ акысыз",
+        avail: "Жеткиликтүү", activeTag: "Активдүү",
+        trialBtn: "⚡ 2 күндү бекер жандыруу",
+        trialDone: "✅ Сыноо мөөнөтү жандырылды (2 күн / 5 ГБ)",
+        trialAlready: "Сыноо мөөнөтү (2 күн / 5 ГБ) мурунтан эле жандырылган!",
+        buy: "Сатып алуу / Узартуу", mysub: "Жазылуум", daysWord: "күн",
+        period: "сыноо мөөнөтү", extend: "Узартуу", limit: "сыноо лимити",
+        increase: "Көбөйтүү", osSub: "Эки кадам — VPN даяр", connect: "Туташуу →",
         loc: "Локациялар", locSub: "Өлкөлөр жана шаарлар", dev: "Түзмөктөр", devSub: "Туташкан түзмөктөр",
         stat: "Статистика", statSub: "ГБ сарпталышы", inv: "Чакыруу", invSub: "Дос үчүн +7 күн",
         news: "Акыркы жаңылыктар", dHome: "Башкы", dInst: "Орнотуу", dRef: "Реферал", dProf: "Профиль"
@@ -905,181 +1287,228 @@
       window.__toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
     }
 
-    function toggleTheme() {
-      const isLight = document.body.classList.toggle("light-theme");
-      document.getElementById("themeToggleBtn").textContent = isLight ? "☀️" : "🌙";
-      showToast(isLight ? "Светлая тема включена" : "Тёмная тема включена");
-    }
-
-    function setLang(lang) {
-      currentLang = I18N[lang] ? lang : "RU";
-      document.querySelectorAll(".region-pill").forEach((b) => {
-        b.classList.toggle("active", b.dataset.lang === currentLang);
-      });
-      const d = I18N[currentLang];
-      document.getElementById("t_bot").textContent = d.bot;
-      document.getElementById("t_sup").textContent = d.sup;
-      document.getElementById("t_trial_title").textContent = d.trialTitle;
-      document.getElementById("t_trial_sub").textContent = d.trialSub;
-      document.getElementById("trialBadge").textContent = trialActivated ? d.activeBadge : d.avail;
-      document.getElementById("trialBtn").textContent = trialActivated ? d.trialDoneBtn : d.trialBtn;
-      document.getElementById("t_buy").textContent = d.buy;
-      document.getElementById("t_mysub").textContent = d.mysub;
-      document.getElementById("daysDisplay").innerHTML = `${currentDays} <span id="t_days_lbl">${d.daysLbl}</span>`;
-      document.getElementById("t_period_lbl").textContent = d.periodLbl;
-      document.getElementById("t_extend").textContent = d.extend;
-      document.getElementById("t_limit_lbl").textContent = d.limitLbl;
-      document.getElementById("t_increase").textContent = d.increase;
-      document.getElementById("t_os_sub").textContent = d.osSub;
-      document.getElementById("t_connect").textContent = d.connect;
-      document.getElementById("t_loc").textContent = d.loc;
-      document.getElementById("t_loc_sub").textContent = d.locSub;
-      document.getElementById("t_dev").textContent = d.dev;
-      document.getElementById("t_dev_sub").textContent = d.devSub;
-      document.getElementById("t_stat").textContent = d.stat;
-      document.getElementById("t_stat_sub").textContent = d.statSub;
-      document.getElementById("t_inv").textContent = d.inv;
-      document.getElementById("t_inv_sub").textContent = d.invSub;
-      document.getElementById("t_news").textContent = d.news;
-      document.getElementById("d_home").textContent = d.dHome;
-      document.getElementById("d_inst").textContent = d.dInst;
-      document.getElementById("d_ref").textContent = d.dRef;
-      document.getElementById("d_prof").textContent = d.dProf;
-    }
-
-    function switchPage(pageName) {
-      const allowed = ["home", "tariffs", "install", "referral", "profile"];
-      const target = allowed.includes(pageName) ? pageName : "home";
+    function openPage(name) {
+      const pages = ["home", "tariffs", "install", "locations", "traffic", "referral", "profile"];
+      const target = pages.includes(name) ? name : "home";
       document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
       document.getElementById("page-" + target).classList.add("active");
 
-      document.querySelectorAll(".dock-item").forEach((btn) => {
-        btn.classList.toggle("active", btn.dataset.nav === target);
+      const dockMap = { home: "home", install: "install", referral: "referral", profile: "profile" };
+      document.querySelectorAll(".dock-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.dock === dockMap[target]);
       });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function selectOs(os) {
-      document.querySelectorAll(".os-btn").forEach((b) => {
-        b.classList.toggle("active", b.dataset.os === os);
+    function setLang(code) {
+      currentLang = LANGS[code] ? code : "RU";
+      document.querySelectorAll(".lang-pill").forEach((b) => {
+        b.classList.toggle("active", b.dataset.lang === currentLang);
       });
-      document.getElementById("osName").textContent = os;
-      document.getElementById("installOsHeading").textContent = os;
-      document.getElementById("installGuideText").textContent = OS_GUIDES[os] || OS_GUIDES.Android;
+      const d = LANGS[currentLang];
+      document.getElementById("lbl_bot").textContent = d.bot;
+      document.getElementById("lbl_sup").textContent = d.sup;
+      document.getElementById("lbl_trial_title").textContent = d.trialTitle;
+      document.getElementById("lbl_trial_sub").textContent = d.trialSub;
+      document.getElementById("trialBadge").textContent = trialActive ? d.activeTag : d.avail;
+      document.getElementById("trialBtn").textContent = trialActive ? d.trialDone : d.trialBtn;
+      document.getElementById("lbl_buy").textContent = d.buy;
+      document.getElementById("lbl_mysub").textContent = d.mysub;
+      document.getElementById("homeDays").innerHTML = `${currentDays} <span id="lbl_days">${d.daysWord}</span>`;
+      document.getElementById("lbl_period").textContent = d.period;
+      document.getElementById("lbl_extend").textContent = d.extend;
+      document.getElementById("lbl_limit").textContent = d.limit;
+      document.getElementById("lbl_increase").textContent = d.increase;
+      document.getElementById("lbl_os_sub").textContent = d.osSub;
+      document.getElementById("lbl_connect").textContent = d.connect;
+      document.getElementById("lbl_loc").textContent = d.loc;
+      document.getElementById("lbl_loc_sub").textContent = d.locSub;
+      document.getElementById("lbl_dev").textContent = d.dev;
+      document.getElementById("lbl_dev_sub").textContent = d.devSub;
+      document.getElementById("lbl_stat").textContent = d.stat;
+      document.getElementById("lbl_stat_sub").textContent = d.statSub;
+      document.getElementById("lbl_inv").textContent = d.inv;
+      document.getElementById("lbl_inv_sub").textContent = d.invSub;
+      document.getElementById("lbl_news").textContent = d.news;
+      document.getElementById("dock_home").textContent = d.dHome;
+      document.getElementById("dock_inst").textContent = d.dInst;
+      document.getElementById("dock_ref").textContent = d.dRef;
+      document.getElementById("dock_prof").textContent = d.dProf;
+      document.getElementById("lbl_lang_selected").textContent = `Выбран язык: ${d.langName}`;
     }
 
     function activateTrial() {
-      const d = I18N[currentLang];
-      if (trialActivated) {
-        showToast(d.trialToast);
+      const d = LANGS[currentLang];
+      if (trialActive) {
+        showToast(d.trialAlready);
         return;
       }
-      trialActivated = true;
+      trialActive = true;
       currentDays = 2;
-      document.getElementById("trialBadge").textContent = d.activeBadge;
-      document.getElementById("trialBadge").classList.add("active-badge");
-      document.getElementById("trialBtn").textContent = d.trialDoneBtn;
-      document.getElementById("trialBtn").classList.add("activated");
-      document.getElementById("profPlanName").textContent = "Пробный";
-      document.getElementById("profDays").textContent = "2 дня";
-      showToast("Активировано 2 дня и 5 ГБ бесплатно в AIVEL VPN!");
+      document.getElementById("trialBadge").textContent = d.activeTag;
+      document.getElementById("trialBadge").classList.add("ok");
+      document.getElementById("trialBtn").textContent = d.trialDone;
+      document.getElementById("trialBtn").classList.add("done");
+      document.getElementById("profPlanTitle").textContent = "Пробный активен";
+      document.getElementById("profDaysText").textContent = "2 дня";
+      showToast("Пробный период (2 дня / 5 ГБ) активирован!");
       if (tg) {
-        // <<< MINI APP: отправка данных боту (бот получит их как web_app_data), после этого Mini App закроется
         try { tg.sendData(JSON.stringify({ action: "activate_trial", lang: currentLang })); } catch (e) {}
       }
     }
 
-    function pickTariff(el) {
-      document.querySelectorAll(".tariff-box").forEach((box) => box.classList.remove("selected"));
+    function selectTariff(el) {
+      document.querySelectorAll(".tariff-card").forEach((c) => c.classList.remove("selected"));
       el.classList.add("selected");
-      selectedPlan = {
-        title: el.dataset.plan,
+      chosenTariff = {
+        plan: el.dataset.plan,
         days: Number(el.dataset.days),
         price: Number(el.dataset.price)
       };
-      document.getElementById("selectedPlanLabel").textContent = `${selectedPlan.title} — ${selectedPlan.price} ₽`;
-      document.getElementById("payActionBtn").textContent = `Подключить · ${selectedPlan.price} ₽ →`;
+      document.getElementById("tariffSummaryText").textContent = `${chosenTariff.plan} — ${chosenTariff.price} ₽`;
+      document.getElementById("tariffPayBtn").textContent = `Подключить · ${chosenTariff.price} ₽ →`;
     }
 
-    function paySelected() {
-      currentDays = selectedPlan.days;
-      document.getElementById("daysDisplay").innerHTML = `${currentDays} <span>${I18N[currentLang].daysLbl}</span>`;
-      document.getElementById("profPlanName").textContent = selectedPlan.title;
-      document.getElementById("profDays").textContent = `${currentDays} дней`;
-      showToast(`Тариф «${selectedPlan.title}» (${selectedPlan.price} ₽) выбран`);
+    function confirmTariff() {
+      currentDays = chosenTariff.days;
+      document.getElementById("homeDays").innerHTML = `${currentDays} <span>${LANGS[currentLang].daysWord}</span>`;
+      document.getElementById("profPlanTitle").textContent = chosenTariff.plan;
+      document.getElementById("profDaysText").textContent = `${currentDays} дней`;
+      showToast(`Выбран тариф AIVEL VPN: ${chosenTariff.plan} за ${chosenTariff.price} ₽`);
       if (tg) {
-        // <<< MINI APP: отправка выбранного тарифа боту через sendData (бот получит web_app_data)
         try {
           tg.sendData(JSON.stringify({
-            action: "select_plan",
-            plan: selectedPlan.title,
-            price: selectedPlan.price,
+            action: "select_tariff",
+            plan: chosenTariff.plan,
+            price: chosenTariff.price,
             lang: currentLang
           }));
         } catch (e) {}
       }
     }
 
-    function copyText(val, okMsg) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(val).then(() => showToast(okMsg)).catch(() => fallbackCopy(val, okMsg));
+    function setHomeOs(os) {
+      document.querySelectorAll(".os-pill").forEach((b) => {
+        b.classList.toggle("active", b.dataset.os === os);
+      });
+      document.getElementById("homeOsTitle").textContent = os;
+      selectedDevice = os;
+      syncDeviceSelection(os);
+    }
+
+    function pickDevice(el) {
+      selectedDevice = el.dataset.dev;
+      syncDeviceSelection(selectedDevice);
+    }
+
+    function syncDeviceSelection(dev) {
+      document.querySelectorAll(".device-box").forEach((box) => {
+        box.classList.toggle("selected", box.dataset.dev === dev);
+      });
+      document.getElementById("chosenDeviceTitle").textContent = dev;
+      document.getElementById("installKeyBox").textContent = `vless://aivel-vpn-${dev.toLowerCase()}@aivel.example:443`;
+    }
+
+    function goInstallStep(step) {
+      const s1 = document.getElementById("installStep1");
+      const s2 = document.getElementById("installStep2");
+      const d1 = document.getElementById("dotStep1");
+      const d2 = document.getElementById("dotStep2");
+      if (step === 2) {
+        s1.style.display = "none";
+        s2.style.display = "block";
+        d1.classList.remove("active");
+        d2.classList.add("active");
       } else {
-        fallbackCopy(val, okMsg);
+        s1.style.display = "block";
+        s2.style.display = "none";
+        d1.classList.add("active");
+        d2.classList.remove("active");
       }
     }
 
-    function fallbackCopy(val, okMsg) {
-      const ta = document.createElement("textarea");
-      ta.value = val;
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand("copy"); showToast(okMsg); } catch (e) {}
-      document.body.removeChild(ta);
+    function chooseLocation(label, el) {
+      document.querySelectorAll("#page-locations .loc-item").forEach((item) => item.classList.remove("active"));
+      el.classList.add("active");
+      showToast(`Выбран регион: ${label}`);
     }
 
-    function copyKey() {
-      copyText(document.getElementById("keyText").textContent.trim(), "Ключ скопирован");
+    function setTrafficPeriod(btn, label) {
+      document.querySelectorAll(".seg-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      showToast(label);
     }
 
-    function copyRef() {
-      copyText(document.getElementById("refLinkText").textContent.trim(), "Ссылка скопирована");
+    function setRefType(kind) {
+      refKind = kind;
+      document.querySelectorAll(".ref-tab").forEach((t) => {
+        t.classList.toggle("active", t.dataset.ref === kind);
+      });
+      document.getElementById("refUrlValue").textContent = kind === "bot"
+        ? `https://t.me/aivelvpn_bot?start=ref_${userId}`
+        : `https://westbynuil-svg.github.io/aivel-miniapp/?ref=${userId}`;
     }
 
-    function copyId() {
-      copyText(currentUserId, "ID скопирован");
+    function copyString(val, msg) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(val).then(() => showToast(msg)).catch(() => showToast(msg));
+      } else {
+        showToast(msg);
+      }
+    }
+
+    function copyInstallKey() {
+      copyString(document.getElementById("installKeyBox").textContent.trim(), "Ключ скопирован");
+    }
+
+    function copyRefUrl() {
+      copyString(document.getElementById("refUrlValue").textContent.trim(), "Ссылка скопирована");
+    }
+
+    function shareRefUrl() {
+      const link = document.getElementById("refUrlValue").textContent.trim();
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("AIVEL VPN — 2 дня и 5 ГБ бесплатно")}`);
+      } else {
+        copyString(link, "Ссылка готова для отправки");
+      }
+    }
+
+    function copyUserId() {
+      copyString(userId, "ID скопирован");
+    }
+
+    function toggleAccessibleTheme() {
+      const enabled = document.body.classList.toggle("accessible-light");
+      document.getElementById("visionBadge").textContent = enabled ? "Вкл" : "Выкл";
+      showToast(enabled ? "Версия для слабовидящих включена" : "Обычная тема включена");
     }
 
     function openBot() {
       const url = "https://t.me/aivelvpn_bot";
-      // <<< MINI APP: открывает ссылку t.me внутри Telegram, без браузера
       tg && tg.openTelegramLink ? tg.openTelegramLink(url) : window.open(url, "_blank");
     }
 
     function openSupport() {
       const url = "https://t.me/AIVEL_SUPPORT";
-      // <<< MINI APP: открывает ссылку t.me внутри Telegram, без браузера
       tg && tg.openTelegramLink ? tg.openTelegramLink(url) : window.open(url, "_blank");
     }
 
     (function init() {
-      // <<< MINI APP: данные пользователя Telegram (id, username, имя)
-      const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-      if (user) {
-        currentUserId = String(user.id);
-        const label = user.username ? `@${user.username}` : ([user.first_name, user.last_name].filter(Boolean).join(" ") || "@aivel_user");
-        const initials = ((user.first_name || "A")[0] + (user.last_name || "V")[0]).toUpperCase();
-        document.getElementById("profAvatar").textContent = initials;
-        document.getElementById("profName").textContent = label;
-        document.getElementById("profIdText").textContent = currentUserId;
-        document.getElementById("refLinkText").textContent = `https://t.me/aivelvpn_bot?start=ref_${currentUserId}`;
+      const u = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
+      if (u) {
+        userId = String(u.id);
+        const nick = u.username ? `@${u.username}` : ([u.first_name, u.last_name].filter(Boolean).join(" ") || "@aivel_user");
+        const av = ((u.first_name || "A")[0] + (u.last_name || "V")[0]).toUpperCase();
+        document.getElementById("profAvatar").textContent = av;
+        document.getElementById("profUsername").textContent = nick;
+        document.getElementById("profIdNum").textContent = userId;
+        setRefType(refKind);
       }
-      // <<< MINI APP: параметр startapp (из ?startapp=home в кнопке бота или из start_param) выбирает стартовую страницу
+
       const params = new URLSearchParams(window.location.search);
       const startapp = params.get("startapp") || (tg && tg.initDataUnsafe ? tg.initDataUnsafe.start_param : "") || "home";
-      if (startapp === "tariffs") switchPage("tariffs");
-      else if (startapp === "profile") switchPage("profile");
-      else if (startapp === "install") switchPage("install");
-      else if (startapp === "referral") switchPage("referral");
-      else switchPage("home");
+      openPage(startapp);
     })();
   </script>
 </body>
