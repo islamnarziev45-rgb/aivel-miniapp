@@ -1769,6 +1769,11 @@
       const row = data.subscription || data.row || data;
       const status = row.status || data.status || "expired";
       const accessType = row.access_type || data.access_type || "trial";
+      const trialAvailable = (row.trial_available ?? data.trial_available) === true;
+      ["botTrialBtn", "homeTrialBtn"].forEach(id => {
+        const button = document.getElementById(id);
+        if (button) button.classList.toggle("hidden", !trialAvailable);
+      });
       const seconds = Number(row.remaining_seconds ?? data.remaining_seconds ?? 0);
       const days = Math.max(0, Math.ceil(seconds / 86400));
       const bytes = Number(row.data_limit ?? data.data_limit ?? (accessType === "trial" ? 5 * 1024 ** 3 : 0));
@@ -1796,8 +1801,15 @@
       const invited = document.getElementById("refInvitedCount"); if (invited) invited.textContent = String(Number(referral.invited_count ?? 0));
       const earned = document.getElementById("refEarnedDays"); if (earned) earned.textContent = String(Number(referral.earned_days ?? 0));
       const pill = document.getElementById("homeTrialPill");
-      if (pill) { pill.textContent = status === "active" ? "Активна" : ((row.trial_available || data.trial_available) ? "Доступно" : "Неактивна"); }
-      const hint = document.getElementById("homeTrialStatusHint"); if (hint) hint.textContent = status === "active" ? "Осталось " + days + " дн. · " + (bytes > 0 ? "лимит " + limit + " ГБ" : "без лимита") : "2 дня и 5 ГБ бесплатно перед покупкой";
+      if (pill) { pill.textContent = status === "active" ? "Активна" : (trialAvailable ? "Доступно" : "Недоступно"); }
+      const hint = document.getElementById("homeTrialStatusHint");
+      if (hint) hint.textContent = status === "active"
+        ? "Осталось " + days + " дн. · " + (bytes > 0 ? "лимит " + limit + " ГБ" : "без лимита")
+        : (trialAvailable ? "2 дня и 5 ГБ бесплатно перед покупкой" : "Пробный период уже использован или недоступен");
+      const botStatus = document.getElementById("botSubStatusText");
+      if (botStatus) botStatus.textContent = status === "active"
+        ? (accessType === "trial" ? "Пробный период активен" : "Подписка активна")
+        : (trialAvailable ? "Пробный доступен (2 дня · 5 ГБ)" : "Пробный период недоступен");
       const ref = document.getElementById("refLinkInput"); if (ref && appState.telegramUserId) ref.value = "https://t.me/aivelvpn_bot?start=ref_" + appState.telegramUserId;
       return data;
     }
