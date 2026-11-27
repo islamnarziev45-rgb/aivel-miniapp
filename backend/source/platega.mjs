@@ -30,7 +30,7 @@ export function createPlategaClient({ merchantId, secret, publicOrigin }) {
       }
     },
     async createPayment({ orderId, telegramId, amountKopecks, durationDays, paymentMethod = 2 }) {
-      if (!Number.isSafeInteger(amountKopecks) || amountKopecks <= 0 || ![2, 10].includes(Number(paymentMethod))) throw new Error("Invalid amount or payment method");
+      if (!Number.isSafeInteger(amountKopecks) || amountKopecks <= 0 || ![2, 11].includes(Number(paymentMethod))) throw new Error("Invalid amount or payment method");
       const abort = new AbortController();
       const timer = setTimeout(() => abort.abort(), 12000);
       try {
