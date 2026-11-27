@@ -27,7 +27,7 @@
 - `POST /miniapp/subscription` — состояние подписки и реферальные счётчики
 - `POST /miniapp/referral` — регистрация Telegram start-параметра и счётчики
 - `POST /miniapp/trial` — ровно 2 дня / 5 ГБ
-- `POST /miniapp/create-payment` — периоды 30/90/180 дней, методы Platega 2/10
+- `POST /miniapp/create-payment` — периоды 30/90/180 дней, методы Platega 2 (СБП/QR) и 11 (банковские карты)
 - `POST /platega/callback` — проверка Platega по секретным заголовкам и повторная проверка транзакции API
 
 Триал использует `startTrial`, где уникальность аккаунта и срок 2 дня уже обеспечены таблицей БД. Оплата подтверждается только по актуальному статусу Platega `CONFIRMED` и совпадающим заказу, payload и сумме; повторный callback идемпотентен на уровне базы.
