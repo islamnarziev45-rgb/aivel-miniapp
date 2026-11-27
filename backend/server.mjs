@@ -105,6 +105,47 @@ function authenticate(request) {
   return validateTelegramInitData(request.headers["x-telegram-init-data"]);
 }
 
+function isBotAuthorized(request) {
+  const supplied = request.headers["x-aivel-bot-token"];
+  if (typeof supplied !== "string") return false;
+  const expected = Buffer.from(botToken);
+  const actual = Buffer.from(supplied);
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
+}
+
+async function hideTrialButton(customer) {
+  const saved = subscriptions.getBotMenu(customer);
+  if (!saved) return false;
+  let markup;
+  try { markup = JSON.parse(saved.markup); } catch { return false; }
+  if (!Array.isArray(markup?.inline_keyboard)) return false;
+  const filtered = markup.inline_keyboard.filter(row => !row.some(button => {
+    const text = String(button?.text || "");
+    const url = String(button?.web_app?.url || "");
+    return /бесплатный старт|принять приглашение/i.test(text) || /[?&]startapp=(trial|ref_)/i.test(url);
+  }));
+  if (filtered.length === markup.inline_keyboard.length) return true;
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/editMessageReplyMarkup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: saved.chat_id,
+        message_id: saved.message_id,
+        reply_markup: { inline_keyboard: filtered }
+      }),
+      signal: AbortSignal.timeout(8000)
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) return false;
+    subscriptions.updateBotMenuMarkup(customer, { inline_keyboard: filtered });
+    return true;
+  } catch (error) {
+    console.warn(JSON.stringify({ event: "trial_menu_update_failed", category: error?.name || "error" }));
+    return false;
+  }
+}
+
 function bindReferral(customer, startParam) {
   const match = /^ref_([1-9]\d{0,15})$/.exec(startParam);
   if (match) subscriptions.registerReferral(customer, match[1]);
@@ -116,20 +157,45 @@ function statsFor(customer) {
 
 async function describe(customer, startParam = "") {
   bindReferral(customer, startParam);
-  const row = subscriptions.get(customer);
+  let row = subscriptions.get(customer);
   const now = Math.floor(Date.now() / 1000);
-  const active = Boolean(row && row.expires_at > now);
+  let active = Boolean(row && row.expires_at > now);
   let panelAccess = null;
-  if (active) {
+  if (active && row.access_kind === "trial") {
+    panelAccess = await marzban.getAccess(row);
+    const limitReached = Number(row.data_limit || 0) > 0 &&
+      Number(panelAccess.usedTraffic || 0) >= Number(row.data_limit);
+    if (panelAccess.status !== "active" || limitReached) {
+      await marzban.expireTrial(row).catch(() => null);
+      row = subscriptions.expireTrial(customer, now);
+      active = false;
+      panelAccess = null;
+    } else {
+      const link = await marzban.sync(row);
+      panelAccess = await marzban.getAccess(row);
+      const usedLimitAfterSync = Number(row.data_limit || 0) > 0 &&
+        Number(panelAccess.usedTraffic || 0) >= Number(row.data_limit);
+      if (panelAccess.status !== "active" || usedLimitAfterSync) {
+        await marzban.expireTrial(row).catch(() => null);
+        row = subscriptions.expireTrial(customer, now);
+        active = false;
+        panelAccess = null;
+      } else {
+        panelAccess.link = link;
+      }
+    }
+  } else if (active) {
     const link = await marzban.sync(row);
     panelAccess = await marzban.getAccess(row);
     panelAccess.link = link;
   }
+  const trialAvailable = subscriptions.canStartTrial(customer, now);
+  if (!trialAvailable) await hideTrialButton(customer);
   const referrals = statsFor(customer);
   return {
     status: active ? "active" : "expired",
     access_type: row?.access_kind || null,
-    trial_available: !row?.trial_used && !active,
+    trial_available: trialAvailable,
     remaining_seconds: active ? row.expires_at - now : 0,
     subscription_url: panelAccess?.link || null,
     data_limit: row?.data_limit ?? 0,
@@ -166,6 +232,31 @@ async function confirmCallback(callback) {
 
 async function handle(request, response) {
   const origin = request.headers.origin;
+  if (request.method === "POST" && ["/bot/trial-status", "/bot/register-menu"].includes(request.url)) {
+    if (!isBotAuthorized(request)) return json(response, 401, { error: "unauthorized" });
+    try {
+      const body = await readJson(request, 8192);
+      const customer = String(body.telegram_id || "");
+      if (!/^[1-9]\\d{0,15}$/.test(customer)) return json(response, 400, { error: "invalid_telegram_id" });
+      if (request.url === "/bot/trial-status") {
+        const data = await describe(customer);
+        return json(response, 200, { trial_available: data.trial_available });
+      }
+      const chatId = String(body.chat_id || "");
+      const messageId = Number(body.message_id);
+      const markup = body.reply_markup;
+      if (chatId !== customer || !Number.isSafeInteger(messageId) || messageId < 1 ||
+          !Array.isArray(markup?.inline_keyboard)) {
+        return json(response, 400, { error: "invalid_menu" });
+      }
+      subscriptions.saveBotMenu(customer, chatId, messageId, markup);
+      if (!subscriptions.canStartTrial(customer)) await hideTrialButton(customer);
+      return json(response, 200, { ok: true });
+    } catch (error) {
+      console.warn(JSON.stringify({ event: "bot_internal_request_failed", category: error?.message || "error" }));
+      return json(response, 400, { error: "invalid_request" });
+    }
+  }
   if (request.method === "OPTIONS") {
     if (origin !== allowedOrigin.origin) return json(response, 403, { error: "miniapp_origin_denied" });
     response.writeHead(204, corsHeaders(origin));
@@ -199,6 +290,9 @@ async function handle(request, response) {
       const trial = subscriptions.startTrial(telegram.id);
       const link = await marzban.sync(trial.row);
       const data = await describe(telegram.id);
+      if (data.status !== "active" || data.access_type !== "trial" || !data.subscription_url) {
+        return json(response, 409, { error: "trial_not_available" }, cors);
+      }
       data.subscription_url = link;
       return json(response, 200, data, cors);
     }
@@ -232,7 +326,7 @@ async function handle(request, response) {
   } catch (error) {
     const message = String(error?.message || "error");
     console.error(JSON.stringify({ event: "api_request_failed", route: request.url, category: message }));
-    if (request.url === "/miniapp/trial" && message === "Trial already used") {
+    if (request.url === "/miniapp/trial" && /Trial already used|Trial unavailable for an existing subscription/.test(message)) {
       return json(response, 409, { error: "trial_not_available" }, cors);
     }
     if (message === "body_too_large") return json(response, 413, { error: message }, cors);
