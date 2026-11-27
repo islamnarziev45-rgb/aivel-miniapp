@@ -43,7 +43,7 @@ def web_app_button(text: str, screen: str, style: str | None = None) -> InlineKe
 
 def inline_menu(referrer_id: str | None = None, show_trial: bool = True) -> InlineKeyboardMarkup:
     first_screen = f"ref_{referrer_id}" if referrer_id else "trial"
-    first_title = "🎁 Принять приглашение · 2 дня" if referrer_id else "🎁 Бесплатный старт · 2 дня"
+    first_title = ("🎁 Принять приглашение · 2 дня" if show_trial else "🎁 Приглашение") if referrer_id else "🎁 Бесплатный старт · 2 дня"
     rows = []
     if referrer_id or show_trial:
         rows.append([web_app_button(first_title, first_screen, "primary")])
