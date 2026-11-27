@@ -881,6 +881,21 @@
           </button>
         </div>
 
+        <div id="profileKeyCard" class="glass-panel rounded-2xl p-4 space-y-3 hidden">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="text-sm font-bold text-white">Ссылка подключения</div>
+              <div class="text-xs text-slate-400">Ваш личный ключ AIVEL VPN</div>
+            </div>
+            <span class="text-emerald-300 text-xs font-bold">● Активна</span>
+          </div>
+          <div id="profileKeyValue" class="max-h-20 overflow-auto rounded-xl bg-black/30 border border-white/10 p-3 text-xs text-slate-200 break-all select-all"></div>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="copyTextToClipboard(appState.subscriptionUrl); showToast('Ссылка подключения скопирована')" class="py-2.5 rounded-xl bg-white/10 text-xs font-bold text-white">Скопировать</button>
+            <button onclick="navigateTab('install')" class="py-2.5 rounded-xl alive-cta text-xs font-bold text-white">Подключить</button>
+          </div>
+        </div>
+
         <div class="glass-panel rounded-2xl divide-y divide-white/10">
           <button onclick="openSubscreen('traffic')" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/[0.03] transition">
             <div>
@@ -1704,6 +1719,10 @@
       appState.subscriptionUrl = row.subscription_url || data.subscription_url || row.link || data.link || "";
       appState.subscriptionStatus = status;
       appState.trialActivated = status === "active" && accessType === "trial";
+      const keyCard = document.getElementById("profileKeyCard");
+      if (keyCard) keyCard.classList.toggle("hidden", status !== "active" || !appState.subscriptionUrl);
+      const keyValue = document.getElementById("profileKeyValue");
+      if (keyValue) keyValue.textContent = appState.subscriptionUrl;
       const d1 = document.getElementById("homeDaysVal"); if (d1) d1.textContent = String(days);
       const d2 = document.getElementById("profileDaysLeft"); if (d2) d2.textContent = String(days);
       const t0 = document.getElementById("homeTrafficVal"); if (t0) t0.textContent = limitLabel;
