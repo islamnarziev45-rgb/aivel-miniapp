@@ -100,6 +100,22 @@ export function createMarzbanClient({
       assertOwner(user, name, row.credential);
       return access(user);
     },
+    async expireTrial(row, now = Date.now() / 1000) {
+      const name = accountName(row);
+      const response = await authorizedRequest(`/api/user/${name}`);
+      if (response.status === 404) return null;
+      const user = await checked(response);
+      assertOwner(user, name, row.credential);
+      const expiredAt = Math.max(1, Math.floor(now) - 1);
+      const updated = await checked(await authorizedRequest(`/api/user/${name}`, "PUT", {
+        status: "active",
+        expire: expiredAt,
+        data_limit: row.data_limit ?? 0,
+        data_limit_reset_strategy: "no_reset"
+      }));
+      assertOwner(updated, name, row.credential);
+      return access(updated);
+    },
     async sync(row) {
       const name = accountName(row);
       const { credential, expires_at: expire } = row;
