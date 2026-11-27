@@ -12,7 +12,7 @@ UNIT_FILE="/etc/systemd/system/${SERVICE}"
 
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
-for command in podman curl cp mkdir date grep sed head seq sleep systemctl; do
+for command in podman curl cp mkdir date grep sed head mv seq sleep systemctl; do
   command -v "$command" >/dev/null || fail "Missing command: $command"
 done
 
@@ -39,6 +39,12 @@ backup_dir="/opt/aivel-closed-test/backups/update-${timestamp}"
 rollback_container="${CONTAINER}-rollback-${timestamp}"
 old_renamed=0
 new_created=0
+
+RAW_BASE="https://raw.githubusercontent.com/islamnarziev45-rgb/aivel-miniapp/main/backend"
+for file in Containerfile server.mjs source/subscriptions.mjs source/platega.mjs; do
+  curl -fsSL "${RAW_BASE}/${file}" -o "${SCRIPT_DIR}/${file}.new"
+  mv "${SCRIPT_DIR}/${file}.new" "${SCRIPT_DIR}/${file}"
+done
 
 podman build --pull=never -t "$IMAGE" -f "${SCRIPT_DIR}/Containerfile" "$SCRIPT_DIR"
 
