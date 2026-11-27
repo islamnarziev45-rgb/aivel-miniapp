@@ -1304,30 +1304,19 @@
 
     <!-- ==================== USER AGREEMENT MODAL ==================== -->
     <div id="agreementModal" class="hidden fixed inset-0 z-40 max-w-[440px] mx-auto bg-black/75 backdrop-blur-sm flex items-end">
-      <div class="w-full bg-[#130d24] border-t border-purple-400/30 rounded-t-3xl p-5 space-y-3 view-animate max-h-[80dvh] overflow-y-auto">
+      <div class="w-full bg-[#130d24] border-t border-purple-400/30 rounded-t-3xl p-5 space-y-3 view-animate">
         <div class="flex items-center justify-between">
-          <h3 class="text-base font-extrabold text-white">Пользовательское соглашение</h3>
-          <button onclick="closeAgreementModal()" class="w-8 h-8 rounded-full bg-white/10 text-slate-300 flex items-center justify-center">✕</button>
+          <h3 class="text-base font-extrabold text-white">Соглашение</h3>
+          <button onclick="closeAgreementModal()" aria-label="Закрыть" class="w-8 h-8 rounded-full bg-white/10 text-slate-300 flex items-center justify-center">✕</button>
         </div>
-        <p class="text-xs text-slate-300 leading-relaxed">
-          Сервис <strong>AIVEL VPN</strong> предоставляет защищённый доступ к сети для устройств Android, iOS, macOS и Windows.
-        </p>
-        <ul class="text-xs text-slate-400 space-y-1.5 list-disc pl-4">
-          <li>Пробный период: 2 дня и 5 ГБ трафика (активируется один раз на аккаунт).</li>
-          <li>Тарифы: 1 месяц — 80 ₽, 3 месяца — 190 ₽, 6 месяцев — 390 ₽.</li>
-          <li>Соблюдайте законы вашей страны при использовании сети.</li>
-        </ul>
-        <div class="space-y-2 pt-1">
-          <a href="https://telegra.ph/23112026-11-22" target="_blank" rel="noopener noreferrer" class="glass-panel block rounded-xl p-3 text-xs font-bold text-purple-200">
-            📄 Читать полное пользовательское соглашение ↗
-          </a>
+        <div class="space-y-2">
           <a href="https://telegra.ph/Politika-konfidencialnosti-11-22-64" target="_blank" rel="noopener noreferrer" class="glass-panel block rounded-xl p-3 text-xs font-bold text-purple-200">
             🔒 Политика конфиденциальности ↗
           </a>
+          <a href="https://telegra.ph/23112026-11-22" target="_blank" rel="noopener noreferrer" class="glass-panel block rounded-xl p-3 text-xs font-bold text-purple-200">
+            📄 Пользовательское соглашение ↗
+          </a>
         </div>
-        <button onclick="closeAgreementModal()" class="cta-gradient w-full py-3 rounded-2xl text-xs font-bold text-white">
-          Понятно
-        </button>
       </div>
     </div>
 
@@ -1829,7 +1818,12 @@
         document.getElementById("tgUserName").textContent = user.username ? "@" + user.username : (name || "Пользователь");
         if (user.id) document.getElementById("tgUserId").textContent = String(user.id);
       }
-      const param = tg.initDataUnsafe && tg.initDataUnsafe.start_param;
+      const routeParams = new URLSearchParams(window.location.search);
+      const routeHashParams = new URLSearchParams(String(window.location.hash || "").replace(/^#/, ""));
+      const param = (tg.initDataUnsafe && tg.initDataUnsafe.start_param)
+        || routeParams.get("startapp")
+        || routeParams.get("tgWebAppStartParam")
+        || routeHashParams.get("tgWebAppStartParam");
       const route = String(param || "");
       if (route.startsWith("ref_")) navigateTab("referral");
       else if (["home", "install", "referral", "profile"].includes(route)) navigateTab(route);
