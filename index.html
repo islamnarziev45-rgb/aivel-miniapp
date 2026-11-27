@@ -435,7 +435,7 @@
           <div class="bg-black/35 border border-white/10 rounded-xl p-2.5 text-[11px] text-slate-200 space-y-1">
             <div>⚡ Высокая скорость и стабильное соединение</div>
             <div>📱 Устройства: Android, iOS, macOS, Windows</div>
-            <div>💳 Тарифы: 1 мес — 80 ₽ · 3 мес — 190 ₽ · 6 мес — 490 ₽</div>
+            <div>💳 Тарифы: 1 мес — 80 ₽ · 3 мес — 190 ₽ · 6 мес — 390 ₽</div>
             <div>🤍 Всегда на связи — спасибо, что вы с нами!</div>
           </div>
         </div>
@@ -708,13 +708,10 @@
             <p class="text-xs text-slate-400" data-i18n="setupSub">Скачайте клиент и добавьте профиль AIVEL VPN</p>
           </div>
 
-          <div class="glass-panel rounded-2xl p-1 grid grid-cols-2 gap-1">
-            <button id="clientTabHapp" onclick="switchClientApp('Happ')" class="py-2 rounded-xl bg-purple-600/40 border border-purple-400/50 text-xs font-bold text-white transition">
-              Happ
-            </button>
-            <button id="clientTabV2Ray" onclick="switchClientApp('v2RayTun')" class="py-2 rounded-xl text-xs font-semibold text-slate-400 transition">
-              v2RayTun
-            </button>
+          <div class="glass-panel rounded-2xl p-1 grid grid-cols-3 gap-1">
+            <button id="clientTabHapp" onclick="switchClientApp('Happ')" class="py-2 rounded-xl bg-purple-600/40 border border-purple-400/50 text-xs font-bold text-white transition">Happ</button>
+            <button id="clientTabV2Ray" onclick="switchClientApp('v2RayTun')" class="py-2 rounded-xl text-xs font-semibold text-slate-400 transition">v2RayTun</button>
+            <button id="clientTabIncy" onclick="switchClientApp('INCY')" class="py-2 rounded-xl text-xs font-semibold text-slate-400 transition">INCY</button>
           </div>
 
           <div class="glass-panel rounded-2xl p-4 space-y-3">
@@ -988,13 +985,13 @@
               <div class="text-[10px] text-emerald-400 font-semibold">~63 ₽ / мес</div>
             </button>
 
-            <button type="button" data-months="6" data-price="490" data-label="6 месяцев" onclick="selectTariff(this)" class="tariff-card glass-panel rounded-2xl p-3 text-left flex flex-col justify-between min-h-[116px] transition">
+            <button type="button" data-months="6" data-price="390" data-label="6 месяцев" onclick="selectTariff(this)" class="tariff-card glass-panel rounded-2xl p-3 text-left flex flex-col justify-between min-h-[116px] transition">
               <div class="text-[10px] font-bold text-pink-300 uppercase">ВЫГОДНО</div>
               <div>
-                <div class="text-lg font-extrabold text-white">490 ₽</div>
+                <div class="text-lg font-extrabold text-white">390 ₽</div>
                 <div class="text-[11px] text-slate-300 font-medium">6 месяцев</div>
               </div>
-              <div class="text-[10px] text-emerald-400 font-semibold">~82 ₽ / мес</div>
+              <div class="text-[10px] text-emerald-400 font-semibold">65 ₽ / мес</div>
             </button>
           </div>
         </div>
@@ -1010,11 +1007,10 @@
           </div>
         </div>
 
-        <button id="payTariffBtn" onclick="handleTariffCheckout()" class="alive-cta w-full py-3.5 px-4 rounded-2xl text-sm font-extrabold text-white flex items-center justify-center gap-2">
-          <span data-i18n="connectAction">Подключить</span>
-          <span>•</span>
-          <span id="payTariffAmount">80 ₽</span>
-        </button>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="handleTariffCheckout(2)" class="alive-cta py-3 px-2 rounded-xl text-xs font-extrabold text-white">СБП / QR · <span id="paySbpAmount">80 ₽</span></button>
+          <button onclick="handleTariffCheckout(10)" class="glass-panel py-3 px-2 rounded-xl text-xs font-extrabold text-white">Карта МИР · <span id="payCardAmount">80 ₽</span></button>
+        </div>
 
         <div class="glass-panel rounded-2xl p-4 space-y-2.5">
           <h3 class="text-sm font-extrabold text-white">Почему AIVEL VPN?</h3>
@@ -1157,7 +1153,7 @@
         <div class="glass-panel rounded-2xl p-4 space-y-2 text-xs text-slate-300">
           <div class="font-bold text-white text-sm">Частые вопросы по AIVEL VPN</div>
           <p>• Пробный период даёт 2 дня и 5 ГБ для проверки скорости и стабильности.</p>
-          <p>• Доступные тарифы: 1 месяц — 80 ₽, 3 месяца — 190 ₽, 6 месяцев — 490 ₽.</p>
+          <p>• Доступные тарифы: 1 месяц — 80 ₽, 3 месяца — 190 ₽, 6 месяцев — 390 ₽.</p>
           <p>• Поддерживаемые платформы: Android, iOS, macOS и Windows.</p>
         </div>
       </section>
@@ -1283,7 +1279,11 @@
       trialTrafficGb: 5,
       lang: 'ru',
       theme: 'dark',
-      lowVision: false
+      lowVision: false,
+      subscriptionUrl: "",
+      subscriptionStatus: "loading",
+      selectedClient: "Happ",
+      telegramUserId: ""
     };
 
     const translations = {
@@ -1674,32 +1674,70 @@
       }
     };
 
-    (function initTelegramWebApp() {
-      try {
-        if (window.Telegram && window.Telegram.WebApp) {
-          const tg = window.Telegram.WebApp;
-          tg.ready();
-          tg.expand();
-          const user = tg.initDataUnsafe && tg.initDataUnsafe.user;
-          if (user) {
-            const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
-            document.getElementById('tgUserName').textContent = user.username ? `@${user.username}` : (fullName || 'Пользователь');
-            if (user.id) document.getElementById('tgUserId').textContent = String(user.id);
-          }
-        }
-      } catch (err) {
-        console.warn('Telegram WebApp SDK fallback mode:', err);
-      }
-    })();
+    const MINIAPP_API_BASE = "https://195.64.106.182:8443";
+    let miniAppInitData = "";
 
-    window.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        const splash = document.getElementById('splashScreen');
-        if (splash) {
-          splash.style.opacity = '0';
-          setTimeout(() => splash.classList.add('hidden'), 300);
-        }
-      }, 650);
+    async function miniAppPost(path, payload = {}) {
+      if (!miniAppInitData) throw new Error("Откройте Mini App из Telegram, чтобы подтвердить аккаунт.");
+      const response = await fetch(MINIAPP_API_BASE + path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": miniAppInitData },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Ошибка сервера (" + response.status + ")");
+      return data;
+    }
+
+    function applySubscriptionState(data = {}) {
+      const row = data.subscription || data.row || data;
+      const status = row.status || data.status || "expired";
+      const accessType = row.access_type || data.access_type || "trial";
+      const seconds = Number(row.remaining_seconds ?? data.remaining_seconds ?? 0);
+      const days = Math.max(0, Math.ceil(seconds / 86400));
+      const bytes = Number(row.data_limit ?? data.data_limit ?? (accessType === "trial" ? 5 * 1024 ** 3 : 0));
+      const limit = Math.max(0, Math.round(bytes / (1024 ** 3)));
+      appState.subscriptionUrl = row.subscription_url || data.subscription_url || row.link || data.link || "";
+      appState.subscriptionStatus = status;
+      appState.trialActivated = status === "active" && accessType === "trial";
+      const d1 = document.getElementById("homeDaysVal"); if (d1) d1.textContent = String(days);
+      const d2 = document.getElementById("profileDaysLeft"); if (d2) d2.textContent = String(days);
+      const t1 = document.getElementById("profileTrafficMax"); if (t1) t1.textContent = String(limit);
+      const t2 = document.getElementById("trafficScreenLimit"); if (t2) t2.textContent = String(limit);
+      const plan = document.getElementById("profilePlanName"); if (plan) plan.textContent = status === "active" ? (accessType === "trial" ? "Пробный активен" : "Подписка активна") : "Нет активной подписки";
+      const pill = document.getElementById("homeTrialPill");
+      if (pill) { pill.textContent = status === "active" ? "Активна" : ((row.trial_available || data.trial_available) ? "Доступно" : "Неактивна"); }
+      const hint = document.getElementById("homeTrialStatusHint"); if (hint) hint.textContent = status === "active" ? "Осталось " + days + " дн. · лимит " + limit + " ГБ" : "2 дня и 5 ГБ бесплатно перед покупкой";
+      const ref = document.getElementById("refLinkInput"); if (ref && appState.telegramUserId) ref.value = "https://t.me/aivelvpn_bot?start=ref_" + appState.telegramUserId;
+      return data;
+    }
+
+    async function refreshSubscriptionState(showError = false) {
+      try { const result = await miniAppPost("/miniapp/subscription"); applySubscriptionState(result); return result; }
+      catch (error) { if (showError) showToast(error.message); else console.warn("Subscription status unavailable:", error.message); return null; }
+    }
+
+    async function initializeMiniApp() {
+      const tg = window.Telegram && window.Telegram.WebApp;
+      if (!tg) return;
+      tg.ready(); tg.expand(); miniAppInitData = tg.initData || "";
+      const user = tg.initDataUnsafe && tg.initDataUnsafe.user;
+      if (user) {
+        appState.telegramUserId = String(user.id || "");
+        const name = [user.first_name, user.last_name].filter(Boolean).join(" ");
+        document.getElementById("tgUserName").textContent = user.username ? "@" + user.username : (name || "Пользователь");
+        if (user.id) document.getElementById("tgUserId").textContent = String(user.id);
+      }
+      const param = tg.initDataUnsafe && tg.initDataUnsafe.start_param;
+      const route = String(param || "").replace(/^ref_/, "");
+      if (["home", "install", "referral", "profile"].includes(route)) navigateTab(route);
+      else if (route === "tariffs") openSubscreen("tariffs");
+      await refreshSubscriptionState(false);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initializeMiniApp().catch(error => console.warn("Mini App init failed:", error));
+      setTimeout(() => { const splash = document.getElementById("splashScreen"); if (splash) { splash.style.opacity = "0"; setTimeout(() => splash.classList.add("hidden"), 300); } }, 650);
     });
 
     function toggleShellMode(targetMode) {
@@ -1767,52 +1805,13 @@
       showToast('Возврат на главный экран бота');
     }
 
-    function activateTrialInstant() {
-      if (appState.trialActivated) {
-        showToast('Пробный период (2 дня / 5 ГБ) уже активирован!');
-        return;
-      }
-
-      appState.trialActivated = true;
-      appState.trialDays = 2;
-      appState.trialTrafficGb = 5;
-
-      document.getElementById('homeDaysVal').textContent = '2';
-      document.getElementById('homeTrafficVal').textContent = '5';
-      document.getElementById('profileDaysLeft').textContent = '2';
-      document.getElementById('profileTrafficMax').textContent = '5';
-      document.getElementById('trafficScreenLimit').textContent = '5';
-      document.getElementById('profilePlanName').textContent = 'Пробный активен';
-
-      const pill = document.getElementById('homeTrialPill');
-      if (pill) {
-        pill.textContent = 'Активирован';
-        pill.className = 'px-2.5 py-1 rounded-full bg-emerald-500/25 border border-emerald-400/50 text-[10px] font-bold text-emerald-300';
-      }
-
-      const hint = document.getElementById('homeTrialStatusHint');
-      if (hint) hint.textContent = 'Активно: 2 дня и 0 / 5 ГБ использовано';
-
-      const homeBtnLabel = document.getElementById('homeTrialBtnLabel');
-      if (homeBtnLabel) homeBtnLabel.textContent = 'Пробный период активен (2 дня / 5 ГБ)';
-
-      const botBtnLabel = document.getElementById('botTrialBtnLabel');
-      if (botBtnLabel) botBtnLabel.textContent = '2 дня бесплатно уже активированы ✓';
-
-      const botStatus = document.getElementById('botSubStatusText');
-      if (botStatus) {
-        botStatus.textContent = 'Пробный активирован (2 дня · 0 / 5 ГБ)';
-        botStatus.className = 'text-emerald-400';
-      }
-
-      const logBox = document.getElementById('botUserActionLog');
-      const bubble = document.getElementById('botUserActionBubble');
-      if (logBox && bubble) {
-        bubble.textContent = 'Активировать 2 дня бесплатно';
-        logBox.classList.remove('hidden');
-      }
-
-      showToast('Активировано 2 дня и 5 ГБ бесплатно в AIVEL VPN!');
+    async function activateTrialInstant() {
+      try {
+        await miniAppPost("/miniapp/trial");
+        await refreshSubscriptionState(false);
+        showToast("Пробный доступ активирован: 2 дня и 5 ГБ.");
+        openSubscreen("install");
+      } catch (error) { showToast(error.message || "Не удалось активировать пробный доступ"); }
     }
 
     function hideAllViews() {
@@ -1926,28 +1925,22 @@
     }
 
     function switchClientApp(clientName) {
-      const tabHapp = document.getElementById('clientTabHapp');
-      const tabV2 = document.getElementById('clientTabV2Ray');
-      const btnText = document.getElementById('downloadClientBtnText');
-      const hint = document.getElementById('clientAppHint');
-
-      if (clientName === 'Happ') {
-        tabHapp.className = 'py-2 rounded-xl bg-purple-600/40 border border-purple-400/50 text-xs font-bold text-white transition';
-        tabV2.className = 'py-2 rounded-xl text-xs font-semibold text-slate-400 transition';
-        btnText.textContent = 'Скачать Happ';
-        hint.textContent = 'Установите клиент Happ для выбранной платформы, чтобы подключить профиль AIVEL VPN.';
-      } else {
-        tabV2.className = 'py-2 rounded-xl bg-purple-600/40 border border-purple-400/50 text-xs font-bold text-white transition';
-        tabHapp.className = 'py-2 rounded-xl text-xs font-semibold text-slate-400 transition';
-        btnText.textContent = 'Скачать v2RayTun';
-        hint.textContent = 'Установите клиент v2RayTun и перейдите ко второму шагу для добавления профиля.';
-      }
+      appState.selectedClient = clientName;
+      ["Happ", "v2RayTun", "INCY"].forEach(name => {
+        const id = name === "Happ" ? "clientTabHapp" : name === "v2RayTun" ? "clientTabV2Ray" : "clientTabIncy";
+        const button = document.getElementById(id);
+        if (button) button.className = name === clientName ? "py-2 rounded-xl bg-purple-600/40 border border-purple-400/50 text-xs font-bold text-white transition" : "py-2 rounded-xl text-xs font-semibold text-slate-400 transition";
+      });
+      document.getElementById("downloadClientBtnText").textContent = clientName === "INCY" ? "Подключить INCY" : "Скачать " + clientName;
+      document.getElementById("clientAppHint").textContent = clientName === "INCY" ? "Нажмите «Подключить конфиг», чтобы импортировать подписку в INCY." : "Установите клиент " + clientName + " для подключения профиля AIVEL VPN.";
     }
 
     function connectConfigAction() {
-      appState.connectedCount += 1;
-      updateConnectedCountUI();
-      showToast(`Профиль AIVEL VPN подготовлен для ${appState.selectedPlatform}`);
+      const url = appState.subscriptionUrl;
+      if (!url) { showToast("Сначала активируйте пробный период или оформите подписку."); return; }
+      if (appState.selectedClient === "Happ") window.location.href = "happ://add/" + url;
+      else if (appState.selectedClient === "INCY") window.location.href = "incy://import/" + encodeURIComponent(url);
+      else { copyTextToClipboard(url); showToast("Ссылка на подписку скопирована для v2RayTun."); }
     }
 
     function markSetupDone() {
@@ -1978,11 +1971,17 @@
       appState.selectedPlanName = label;
 
       document.getElementById('summaryTariffText').textContent = `${label} — ${price} ₽`;
-      document.getElementById('payTariffAmount').textContent = `${price} ₽`;
+      ['paySbpAmount', 'payCardAmount'].forEach(id => { const node = document.getElementById(id); if (node) node.textContent = `${price} ₽`; });
     }
 
-    function handleTariffCheckout() {
-      showToast(`Выбран тариф AIVEL VPN: ${appState.selectedPlanName} за ${appState.selectedPrice} ₽`);
+    async function handleTariffCheckout(paymentMethod = 2) {
+      try {
+        const result = await miniAppPost("/miniapp/create-payment", { duration_days: appState.selectedMonths * 30, payment_method: Number(paymentMethod) });
+        const url = result.paymentUrl || result.payment_url || result.redirect || result.url;
+        if (!url || !/^https:\/\//i.test(url)) throw new Error("Сервер не вернул безопасную ссылку на оплату.");
+        const tg = window.Telegram && window.Telegram.WebApp;
+        if (tg && typeof tg.openLink === "function") tg.openLink(url); else window.open(url, "_blank", "noopener");
+      } catch (error) { showToast(error.message || "Не удалось создать платёж"); }
     }
 
     function switchRefLinkType(type) {
@@ -1993,11 +1992,11 @@
       if (type === 'bot') {
         botBtn.className = 'px-2.5 py-1 rounded-md bg-purple-600/50 text-[11px] font-bold text-white transition';
         siteBtn.className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-400 transition';
-        input.value = 'https://t.me/aivelvpn_bot?start=ref_user';
+        input.value = appState.telegramUserId ? 'https://t.me/aivelvpn_bot?start=ref_' + appState.telegramUserId : 'Откройте Mini App из Telegram для своей ссылки';
       } else {
         siteBtn.className = 'px-2.5 py-1 rounded-md bg-purple-600/50 text-[11px] font-bold text-white transition';
         botBtn.className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-400 transition';
-        input.value = 'https://aivelvpn.example/?ref=user';
+        input.value = appState.telegramUserId ? 'https://t.me/aivelvpn_bot?start=ref_' + appState.telegramUserId : 'Откройте Mini App из Telegram для своей ссылки';
       }
     }
 
