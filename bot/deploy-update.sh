@@ -5,6 +5,7 @@ BOT_DIR="/opt/aivel-vpn-bot"
 BOT_ENV="${BOT_DIR}/bot.env"
 CONTAINER="aivel-vpn-bot-standalone"
 SERVICE="aivel-vpn-bot-standalone.service"
+UNIT="/etc/systemd/system/aivel-vpn-bot-standalone.service"
 SCRIPT_DIR="/opt/aivel-vpn-miniapp/bot"
 IMAGE="localhost/aivel-vpn-bot:update-$(date +%Y%m%d-%H%M%S)"
 
@@ -14,11 +15,10 @@ for command in curl podman systemctl date mv grep sleep seq journalctl; do
 done
 [[ -f "$BOT_ENV" ]] || fail "Missing protected bot env file: $BOT_ENV"
 [[ -f "$SCRIPT_DIR/Containerfile" ]] || fail "Bot source directory not found: $SCRIPT_DIR"
+[[ -f "$UNIT" ]] || fail "Systemd unit not found: $UNIT"
 systemctl is-active --quiet aivel-vpn-api.service || fail "Standalone API must be active first."
 [[ "$(curl -sS -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:18080/health)" == "200" ]] || fail "Standalone API health check failed."
-systemctl is-active --quiet "$SERVICE" || fail "$SERVICE is not active; inspect it before updating."
 podman container exists "$CONTAINER" || fail "Bot container $CONTAINER was not found."
-podman inspect --format '{{.State.Running}}' "$CONTAINER" | grep -qx true || fail "Bot container is not running."
 
 RAW_BASE="https://raw.githubusercontent.com/islamnarziev45-rgb/aivel-miniapp/main/bot"
 for file in bot.py Containerfile requirements.txt; do
