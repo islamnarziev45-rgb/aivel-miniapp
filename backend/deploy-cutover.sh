@@ -99,8 +99,12 @@ headers="$(curl -sS -D - -o /dev/null -X OPTIONS "http://127.0.0.1:${PORT}/minia
   -H 'Access-Control-Request-Headers: content-type,x-telegram-init-data')"
 grep -Fqi "Access-Control-Allow-Origin: ${origin}" <<<"$headers" || fail "Mini App CORS check failed."
 
-if ! podman update --restart=no "$OLD_CONTAINER" >/dev/null 2>&1; then
-  printf 'WARNING: Could not change the old container restart policy; it remains stopped for now. Check podman update --help before reboot.\n' >&2
+if podman update --help 2>&1 | grep -q -- '--restart'; then
+  if ! podman update --restart=no "$OLD_CONTAINER" >/dev/null 2>&1; then
+    printf 'WARNING: Could not change the old container restart policy; it remains stopped for now.\n' >&2
+  fi
+else
+  printf 'WARNING: This Podman cannot change restart policy. The old container is stopped; review/remove it after validating the new API.\n' >&2
 fi
 trap - EXIT
 printf 'Standalone API is healthy. Previous container is stopped. DB backup: %s\n' "$backup_dir"
