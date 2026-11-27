@@ -381,9 +381,7 @@
         </button>
 
         <div class="flex items-center gap-1.5">
-          <button id="modeToggleBtn" onclick="toggleShellMode()" class="px-2.5 py-2 rounded-full bg-purple-500/20 border border-purple-400/35 text-[11px] font-bold text-purple-200 hover:bg-purple-500/30 transition">
-            💬 Чат-бот
-          </button>
+          
 
           <button onclick="openHelpSheet()" class="glass-panel glass-interactive flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold text-slate-100">
             <svg class="w-4 h-4 text-purple-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -463,18 +461,18 @@
         <div class="space-y-2">
           <button id="botTrialBtn" onclick="activateTrialInstant()" class="btn-green-accent w-full py-3 px-4 rounded-xl text-xs font-extrabold text-white flex items-center justify-center gap-2">
             <span>🎁</span>
-            <span id="botTrialBtnLabel">Активировать 2 дня бесплатно</span>
+            <span id="botTrialBtnLabel" data-i18n="trialAction">Получить 2 дня бесплатно</span>
           </button>
 
           <div class="grid grid-cols-2 gap-2">
             <button onclick="openMiniAppAt('tariffs')" class="btn-green-accent py-2.5 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1.5">
               <span>💳</span>
-              <span>Купить/Продлить</span>
+              <span data-i18n="buyAction">Купить / Продлить</span>
             </button>
 
             <button onclick="openMiniAppAt('profile')" class="btn-blue-accent py-2.5 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1.5">
               <span>🔗</span>
-              <span>Моя подписка</span>
+              <span data-i18n="subscriptionAction">Моя подписка</span>
             </button>
           </div>
 
@@ -545,17 +543,17 @@
 
           <button id="homeTrialBtn" onclick="activateTrialInstant()" class="alive-cta w-full py-3 px-4 rounded-xl text-xs font-extrabold text-white flex items-center justify-center gap-1.5">
             <span>⚡</span>
-            <span id="homeTrialBtnLabel">Активировать 2 дня бесплатно</span>
+            <span id="homeTrialBtnLabel" data-i18n="trialAction">Получить 2 дня бесплатно</span>
           </button>
 
           <div class="grid grid-cols-2 gap-2">
             <button onclick="openSubscreen('tariffs')" class="alive-cta py-2.5 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1">
               <span>💳</span>
-              <span>Купить/Продлить</span>
+              <span data-i18n="buyAction">Купить / Продлить</span>
             </button>
             <button onclick="navigateTab('profile')" class="btn-blue-accent py-2.5 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1">
               <span>🔗</span>
-              <span>Моя подписка</span>
+              <span data-i18n="subscriptionAction">Моя подписка</span>
             </button>
           </div>
         </div>
@@ -1362,6 +1360,9 @@
 
     const translations = {
       ru: {
+        trialAction: 'Получить 2 дня бесплатно',
+        buyAction: 'Купить / Продлить',
+        subscriptionAction: 'Моя подписка',
         langLabel: 'Русский',
         back: 'Назад',
         support: 'Поддержка',
@@ -1439,6 +1440,9 @@
         navProfile: 'Профиль'
       },
       uz: {
+        trialAction: 'Bepul 2 kun olish',
+        buyAction: 'Sotib olish / uzaytirish',
+        subscriptionAction: 'Obunam',
         langLabel: 'Oʻzbekcha',
         back: 'Orqaga',
         support: 'Yordam',
@@ -1516,6 +1520,9 @@
         navProfile: 'Profil'
       },
       tg: {
+        trialAction: '2 рӯзи ройгон гирифтан',
+        buyAction: 'Харид / тамдид',
+        subscriptionAction: 'Обунаи ман',
         langLabel: 'Тоҷикӣ',
         back: 'Бозгашт',
         support: 'Дастгирӣ',
@@ -1593,6 +1600,9 @@
         navProfile: 'Профил'
       },
       ky: {
+        trialAction: '2 күн акысыз алуу',
+        buyAction: 'Сатып алуу / узартуу',
+        subscriptionAction: 'Менин жазылуум',
         langLabel: 'Кыргызча',
         back: 'Артка',
         support: 'Колдоо',
@@ -1670,6 +1680,9 @@
         navProfile: 'Профиль'
       },
       kk: {
+        trialAction: '2 күн тегін алу',
+        buyAction: 'Сатып алу / ұзарту',
+        subscriptionAction: 'Менің жазылымым',
         langLabel: 'Қазақша',
         back: 'Артқа',
         support: 'Қолдау',
