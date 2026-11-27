@@ -1,1515 +1,2150 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>AIVEL VPN</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIVEL VPN — Telegram Mini App & Bot Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --bg: #07040e;
-      --surface: #150f24;
-      --surface-2: #1c1430;
-      --surface-3: #24193d;
-      --border: rgba(168, 85, 247, 0.24);
-      --border-bright: rgba(192, 132, 252, 0.65);
-      --text: #f6f3ff;
-      --muted: #a396c2;
-      --purple: #7c3aed;
-      --violet: #6d28d9;
-      --pink: #ec4899;
-      --magenta: #c026d3;
-      --blue: #2563eb;
-      --green: #10b981;
-      --glow-purple: 0 4px 18px rgba(124, 58, 237, 0.48);
-      --glow-pink: 0 8px 26px rgba(217, 70, 239, 0.36);
-      --glow-blue: 0 8px 22px rgba(37, 99, 235, 0.34);
-    }
-
-    body.accessible-light {
-      --bg: #f5f2fc;
-      --surface: #ffffff;
-      --surface-2: #f1ecfb;
-      --surface-3: #e7dff8;
-      --border: rgba(109, 40, 217, 0.22);
-      --border-bright: rgba(109, 40, 217, 0.7);
-      --text: #150d29;
-      --muted: #564c70;
-      --glow-purple: 0 3px 10px rgba(109, 40, 217, 0.18);
-      --glow-pink: 0 4px 12px rgba(192, 38, 211, 0.18);
-      --glow-blue: 0 4px 12px rgba(37, 99, 235, 0.18);
-    }
-
-    body.accessible-light * {
-      transition: none !important;
-      animation: none !important;
-    }
-
     * {
-      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
     body {
+      background-color: #05040a;
+      color: #f8fafc;
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background:
-        radial-gradient(circle at 50% -6%, rgba(124, 58, 237, 0.44), transparent 52%),
-        radial-gradient(circle at 88% 24%, rgba(217, 70, 239, 0.15), transparent 45%),
-        var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 0 12px 92px;
-      transition: background 0.2s ease, color 0.2s ease;
+      padding: 0;
+      overflow-x: hidden;
     }
 
-    body.accessible-light {
-      background: var(--bg);
-    }
-
-    .app {
+    .app-shell {
+      min-height: 100dvh;
       max-width: 440px;
       margin: 0 auto;
-    }
-
-    /* Sticky Top Chrome */
-    .sticky-header {
-      position: sticky;
-      top: 0;
-      z-index: 25;
-      padding: 10px 0 8px;
-      background: linear-gradient(180deg, var(--bg) 78%, transparent 100%);
-      backdrop-filter: blur(10px);
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-    }
-
-    .brand-logo {
-      width: 34px;
-      height: 34px;
-      border-radius: 11px;
-      background: linear-gradient(135deg, #7c3aed, #ec4899);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      color: #fff;
-      box-shadow: var(--glow-purple);
-      flex-shrink: 0;
-    }
-
-    .brand-title {
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1.05;
-      letter-spacing: 0.3px;
-    }
-
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .pill-btn {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-    }
-
-    .pill-btn.active-glow {
-      background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      border-color: var(--border-bright);
-      color: #fff;
-      box-shadow: var(--glow-purple);
-    }
-
-    .circle-btn {
-      width: 30px;
-      height: 30px;
-      border-radius: 999px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .lang-row {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 6px;
-    }
-
-    .lang-pill {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      border-radius: 999px;
-      padding: 6px 4px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-    }
-
-    .lang-pill.active {
-      background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      border-color: var(--border-bright);
-      color: #fff;
-      box-shadow: var(--glow-purple);
-    }
-
-    /* Cards & Surfaces */
-    .card {
-      background: linear-gradient(180deg, var(--surface-2), var(--surface));
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 15px;
-      margin-bottom: 12px;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
-    }
-
-    body.accessible-light .card {
-      background: var(--surface);
-      box-shadow: 0 4px 14px rgba(21, 13, 41, 0.06);
-    }
-
-    .row-between {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .title-md {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .title-lg {
-      margin: 0;
-      font-size: 17px;
-      font-weight: 800;
-    }
-
-    .sub-txt {
-      margin: 3px 0 0;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.4;
-    }
-
-    .micro-upper {
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.6px;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .badge {
-      padding: 5px 11px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 700;
-      background: rgba(124, 58, 237, 0.24);
-      border: 1px solid rgba(192, 132, 252, 0.4);
-      color: var(--text);
-      white-space: nowrap;
-    }
-
-    .badge.ok {
-      background: rgba(16, 185, 129, 0.16);
-      border-color: rgba(52, 211, 153, 0.45);
-      color: #34d399;
-    }
-
-    .badge.beta {
-      background: rgba(124, 58, 237, 0.22);
-      color: #c4b5fd;
-    }
-
-    /* Buttons */
-    .btn-gradient {
-      width: 100%;
-      margin-top: 12px;
-      border: 0;
-      border-radius: 14px;
-      padding: 13px 14px;
-      font-size: 13px;
-      font-weight: 700;
-      color: #fff;
-      background: linear-gradient(90deg, #7c3aed 0%, #c026d3 55%, #ec4899 100%);
-      box-shadow: var(--glow-pink);
-      cursor: pointer;
-    }
-
-    .btn-gradient.done {
-      background: linear-gradient(90deg, #6d28d9, #8b5cf6);
-      box-shadow: var(--glow-purple);
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .btn-pink {
-      border: 0;
-      border-radius: 12px;
-      padding: 10px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #fff;
-      background: linear-gradient(90deg, #9333ea, #db2777);
-      box-shadow: 0 6px 18px rgba(219, 39, 119, 0.28);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-    }
-
-    .btn-blue {
-      border: 0;
-      border-radius: 12px;
-      padding: 10px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #fff;
-      background: linear-gradient(90deg, #1d4ed8, #2563eb);
-      box-shadow: var(--glow-blue);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-    }
-
-    .btn-surface {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text);
-      background: var(--surface-3);
-      cursor: pointer;
-    }
-
-    .ico-sq {
-      width: 34px;
-      height: 34px;
-      border-radius: 11px;
-      background: rgba(124, 58, 237, 0.18);
-      border: 1px solid rgba(168, 85, 247, 0.34);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      flex-shrink: 0;
-    }
-
-    .stat-num {
-      font-size: 22px;
-      font-weight: 800;
-      margin-top: 8px;
-    }
-
-    .stat-num span {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-    }
-
-    /* OS pills & tiles */
-    .os-pills {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .os-pill {
-      border: 1px solid var(--border);
-      background: var(--surface-3);
-      color: var(--muted);
-      border-radius: 999px;
-      padding: 6px 11px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .os-pill.active {
-      background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      border-color: var(--border-bright);
-      color: #fff;
-      box-shadow: var(--glow-purple);
-    }
-
-    .tile {
-      background: linear-gradient(180deg, var(--surface-2), var(--surface));
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 14px;
-      text-align: left;
-      color: var(--text);
-      cursor: pointer;
-    }
-
-    body.accessible-light .tile {
-      background: var(--surface);
-    }
-
-    .news-row {
-      padding: 10px 0;
-      border-top: 1px solid var(--border);
-    }
-
-    .news-row:first-of-type {
-      border-top: 0;
-      padding-top: 6px;
-    }
-
-    /* Tariffs */
-    .tariff-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin: 12px 0;
-    }
-
-    .tariff-card {
-      background: var(--surface-3);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 10px 7px;
-      text-align: center;
-      cursor: pointer;
-    }
-
-    .tariff-card.selected {
-      background: linear-gradient(180deg, rgba(124, 58, 237, 0.34), var(--surface-3));
-      border-color: var(--border-bright);
-      box-shadow: var(--glow-purple);
-    }
-
-    .tag {
-      display: inline-block;
-      font-size: 9px;
-      font-weight: 800;
-      text-transform: uppercase;
-      padding: 2px 7px;
-      border-radius: 999px;
-      margin-bottom: 6px;
-      background: rgba(139, 92, 246, 0.25);
-      color: var(--text);
-    }
-
-    .tag.pop {
-      background: #7c3aed;
-      color: #fff;
-    }
-
-    .tag.good {
-      background: rgba(16, 185, 129, 0.22);
-      color: #34d399;
-    }
-
-    .tariff-price {
-      font-size: 16px;
-      font-weight: 800;
-    }
-
-    .summary-panel {
-      background: var(--surface-3);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 11px 12px;
-      font-size: 12px;
-    }
-
-    .check-list {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0 0;
-      font-size: 12px;
-    }
-
-    .check-list li {
-      margin-bottom: 7px;
-      display: flex;
-      gap: 7px;
-      align-items: center;
-    }
-
-    /* Stepper Install */
-    .stepper {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .step-dot {
-      width: 26px;
-      height: 26px;
-      border-radius: 999px;
-      background: var(--surface-3);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .step-dot.active {
-      background: linear-gradient(135deg, #7c3aed, #9333ea);
-      border-color: var(--border-bright);
-      color: #fff;
-      box-shadow: var(--glow-purple);
-    }
-
-    .step-line {
-      width: 44px;
-      height: 2px;
-      background: var(--border);
-    }
-
-    .device-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .device-box {
-      background: var(--surface-3);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 14px;
-      text-align: center;
-      cursor: pointer;
-    }
-
-    .device-box.selected {
-      border-color: var(--border-bright);
-      background: rgba(124, 58, 237, 0.22);
-      box-shadow: var(--glow-purple);
-    }
-
-    /* Locations & Traffic */
-    .loc-item {
-      background: var(--surface-3);
-      border: 1px solid var(--border);
-      border-radius: 15px;
-      padding: 12px;
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-    }
-
-    .loc-item.active {
-      border-color: var(--border-bright);
-      background: rgba(124, 58, 237, 0.22);
-    }
-
-    .seg-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      background: var(--surface-3);
-      padding: 4px;
-      border-radius: 13px;
-      margin: 12px 0;
-    }
-
-    .seg-btn {
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      padding: 7px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .seg-btn.active {
-      background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      color: #fff;
-    }
-
-    /* Referral & Profile */
-    .ref-toggle {
-      display: inline-flex;
-      gap: 4px;
-      background: var(--surface-3);
-      padding: 3px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-    }
-
-    .ref-tab {
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      padding: 4px 9px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .ref-tab.active {
-      background: #7c3aed;
-      color: #fff;
-    }
-
-    .link-box {
-      margin-top: 8px;
-      background: var(--surface-3);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px;
-      font-family: ui-monospace, monospace;
-      font-size: 11px;
-      word-break: break-all;
-      color: var(--text);
-    }
-
-    .avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #7c3aed, #6366f1);
-      color: #fff;
-      font-weight: 800;
-      font-size: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .menu-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-top: 1px solid var(--border);
-      cursor: pointer;
-    }
-
-    .menu-row:first-child {
-      border-top: 0;
-      padding-top: 2px;
-    }
-
-    .page {
-      display: none;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    /* Bottom Dock */
-    .dock {
-      position: fixed;
-      left: 50%;
-      bottom: 10px;
-      transform: translateX(-50%);
-      width: calc(100% - 24px);
-      max-width: 416px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      padding: 6px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 4px;
-      z-index: 30;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-    }
-
-    .dock-btn {
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      border-radius: 16px;
-      padding: 7px 4px;
-      font-size: 10px;
-      font-weight: 700;
-      cursor: pointer;
+      position: relative;
+      background:
+        radial-gradient(circle at 50% -6%, rgba(168, 85, 247, 0.28), transparent 52%),
+        radial-gradient(circle at 85% 22%, rgba(236, 72, 153, 0.16), transparent 45%),
+        linear-gradient(180deg, #0b0718 0%, #07050f 58%, #05040a 100%);
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.75);
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 2px;
     }
 
-    .dock-btn.active {
-      background: rgba(124, 58, 237, 0.35);
-      color: var(--text);
-      box-shadow: inset 0 0 0 1px rgba(196, 181, 253, 0.28);
-    }
-
-    /* Toast */
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 78px;
-      transform: translateX(-50%) translateY(14px);
-      background: var(--surface-3);
-      color: var(--text);
-      border: 1px solid var(--border-bright);
-      padding: 10px 16px;
-      border-radius: 13px;
-      font-size: 12px;
-      font-weight: 700;
-      opacity: 0;
+    .stars-layer {
+      position: absolute;
+      inset: 0;
       pointer-events: none;
-      transition: all 0.2s ease;
-      z-index: 60;
-      max-width: 92%;
-      text-align: center;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+      background-image:
+        radial-gradient(1px 1px at 14% 18%, rgba(255, 255, 255, 0.45), transparent),
+        radial-gradient(1.5px 1.5px at 78% 12%, rgba(240, 171, 252, 0.45), transparent),
+        radial-gradient(1px 1px at 90% 38%, rgba(255, 255, 255, 0.35), transparent),
+        radial-gradient(1.2px 1.2px at 26% 64%, rgba(192, 132, 252, 0.4), transparent),
+        radial-gradient(1px 1px at 66% 74%, rgba(255, 255, 255, 0.3), transparent),
+        radial-gradient(1.4px 1.4px at 42% 31%, rgba(251, 113, 133, 0.35), transparent);
+      opacity: 0.75;
     }
 
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
+    .glass-panel {
+      background: rgba(23, 18, 38, 0.74);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .glass-interactive {
+      transition: transform 0.14s ease, border-color 0.18s ease, background-color 0.18s ease;
+    }
+    .glass-interactive:active {
+      transform: scale(0.98);
+      border-color: rgba(217, 70, 239, 0.55);
+    }
+
+    .cta-gradient {
+      background: linear-gradient(95deg, #7c3aed 0%, #c026d3 52%, #ec4899 100%);
+      box-shadow: 0 10px 26px -6px rgba(192, 38, 211, 0.55);
+      transition: transform 0.14s ease, filter 0.18s ease;
+    }
+    .cta-gradient:active {
+      transform: scale(0.985);
+      filter: brightness(1.06);
+    }
+
+    @property --btn-angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+
+    @keyframes spinBorderBeam {
+      to {
+        --btn-angle: 360deg;
+      }
+    }
+
+    @keyframes buttonShimmerSweep {
+      0% { transform: translateX(-140%) skewX(-20deg); }
+      45%, 100% { transform: translateX(240%) skewX(-20deg); }
+    }
+
+    .alive-cta {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      background: linear-gradient(135deg, #7c3aed 0%, #c026d3 52%, #db2777 100%);
+      border: 1.5px solid transparent;
+      box-shadow:
+        0 10px 26px -6px rgba(192, 38, 211, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      transition: transform 0.14s ease, filter 0.18s ease, box-shadow 0.2s ease;
+    }
+
+    .alive-cta::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      padding: 2px;
+      background: conic-gradient(
+        from var(--btn-angle, 0deg),
+        rgba(124, 58, 237, 0.25) 0%,
+        #f0abfc 22%,
+        #ffffff 32%,
+        #ec4899 45%,
+        rgba(124, 58, 237, 0.2) 70%,
+        #c084fc 88%,
+        rgba(124, 58, 237, 0.25) 100%
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: spinBorderBeam 3.2s linear infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .alive-cta::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 45%;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.26) 50%,
+        transparent 100%
+      );
+      animation: buttonShimmerSweep 4.2s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .alive-cta:active {
+      transform: scale(0.98);
+      filter: brightness(1.08);
+    }
+
+    .card-active {
+      background: linear-gradient(145deg, rgba(139, 92, 246, 0.28), rgba(236, 72, 153, 0.18));
+      border-color: rgba(217, 70, 239, 0.85);
+      box-shadow: 0 0 22px rgba(192, 38, 211, 0.25);
+    }
+
+    .btn-green-accent {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+      border: 1px solid rgba(74, 222, 128, 0.45);
+      box-shadow: 0 6px 18px -6px rgba(34, 197, 94, 0.45);
+      transition: transform 0.14s ease, filter 0.18s ease;
+    }
+    .btn-green-accent:active {
+      transform: scale(0.98);
+      filter: brightness(1.08);
+    }
+
+    .btn-blue-accent {
+      background: linear-gradient(135deg, #3b5bdb 0%, #2b4c7e 100%);
+      border: 1px solid rgba(129, 140, 248, 0.45);
+      box-shadow: 0 6px 18px -6px rgba(59, 91, 219, 0.45);
+      transition: transform 0.14s ease, filter 0.18s ease;
+    }
+    .btn-blue-accent:active {
+      transform: scale(0.98);
+      filter: brightness(1.08);
+    }
+
+    .btn-dark-bot {
+      background: rgba(24, 22, 34, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      transition: transform 0.14s ease, background-color 0.18s ease;
+    }
+    .btn-dark-bot:active {
+      transform: scale(0.98);
+      background: rgba(38, 35, 54, 0.95);
+    }
+
+    .bot-chat-bg {
+      background-color: #0e0c14;
+      background-image:
+        radial-gradient(circle at 50% 10%, rgba(139, 92, 246, 0.14), transparent 55%),
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        radial-gradient(circle at 80% 60%, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 100% 100%, 36px 36px, 48px 48px;
+    }
+
+    @keyframes viewFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .view-animate {
+      animation: viewFadeIn 0.22s ease-out forwards;
+    }
+
+    /* Clean Light Theme (Sleep / DND toggle) */
+    body.light-theme .app-shell {
+      background:
+        radial-gradient(circle at 50% -6%, rgba(168, 85, 247, 0.14), transparent 52%),
+        linear-gradient(180deg, #f8f7fc 0%, #f1eff9 58%, #ece9f6 100%);
+      color: #0f172a;
+    }
+    body.light-theme .stars-layer {
+      opacity: 0.15;
+    }
+    body.light-theme .glass-panel {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(124, 58, 237, 0.16);
+      box-shadow: 0 6px 20px -8px rgba(15, 23, 42, 0.12);
+    }
+    body.light-theme .text-white {
+      color: #0f172a !important;
+    }
+    body.light-theme .text-slate-100,
+    body.light-theme .text-slate-200 {
+      color: #1e293b !important;
+    }
+    body.light-theme .text-slate-300,
+    body.light-theme .text-slate-400 {
+      color: #475569 !important;
+    }
+    body.light-theme .bg-white\/5,
+    body.light-theme .bg-white\/10,
+    body.light-theme .bg-black\/30,
+    body.light-theme .bg-black\/35,
+    body.light-theme .bg-black\/40 {
+      background-color: rgba(124, 58, 237, 0.08) !important;
+    }
+    body.light-theme #miniAppBottomNav {
+      background: linear-gradient(to top, #ece9f6, rgba(236, 233, 246, 0.94), transparent);
+    }
+    body.light-theme .alive-cta,
+    body.light-theme .cta-gradient,
+    body.light-theme .btn-green-accent,
+    body.light-theme .btn-blue-accent {
+      color: #ffffff !important;
+    }
+    body.light-theme .alive-cta span,
+    body.light-theme .cta-gradient span,
+    body.light-theme .btn-green-accent span,
+    body.light-theme .btn-blue-accent span {
+      color: #ffffff !important;
+    }
+
+    /* High-contrast low-vision mode */
+    body.low-vision .app-shell {
+      background: #ffffff !important;
+      color: #0f172a !important;
+    }
+    body.low-vision .stars-layer {
+      display: none !important;
+    }
+    body.low-vision .glass-panel,
+    body.low-vision .btn-dark-bot {
+      background: #f8fafc !important;
+      color: #0f172a !important;
+      border: 2px solid #0f172a !important;
+      backdrop-filter: none !important;
+    }
+    body.low-vision .text-white,
+    body.low-vision .text-slate-100,
+    body.low-vision .text-slate-200,
+    body.low-vision .text-slate-300,
+    body.low-vision .text-slate-400 {
+      color: #0f172a !important;
+    }
+    body.low-vision .cta-gradient,
+    body.low-vision .btn-green-accent,
+    body.low-vision .btn-blue-accent {
+      background: #1e1b4b !important;
+      color: #ffffff !important;
+      border: 2px solid #0f172a !important;
+      box-shadow: none !important;
+    }
+    body.low-vision .view-animate,
+    body.low-vision * {
+      animation: none !important;
+      transition: none !important;
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="sticky-header">
-      <div class="topbar">
-        <div class="brand" onclick="openPage('home')">
-          <div class="brand-logo">🛡️</div>
-          <div class="brand-title">AIVEL<br/>VPN</div>
+  <div id="appShell" class="app-shell">
+    <div class="stars-layer"></div>
+
+    <!-- ==================== SPLASH SCREEN ==================== -->
+    <div id="splashScreen" class="fixed inset-0 z-50 max-w-[440px] mx-auto flex flex-col items-center justify-between py-14 px-6 bg-[#07050f] transition-opacity duration-300">
+      <div></div>
+      <div class="flex flex-col items-center gap-4">
+        <div class="w-24 h-24 rounded-3xl bg-[#0b0716] border border-fuchsia-400/35 flex items-center justify-center shadow-2xl shadow-fuchsia-600/35 p-2">
+          <svg class="w-full h-full" viewBox="0 0 120 120" fill="none" aria-label="AIVEL VPN Logo">
+            <defs>
+              <linearGradient id="aivelShieldGradSplash" x1="22" y1="14" x2="98" y2="106" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#818cf8" />
+                <stop offset="50%" stop-color="#d946ef" />
+                <stop offset="100%" stop-color="#fb7185" />
+              </linearGradient>
+              <linearGradient id="aivelLetterGradSplash" x1="42" y1="36" x2="78" y2="88" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#c084fc" />
+                <stop offset="55%" stop-color="#f0abfc" />
+                <stop offset="100%" stop-color="#fda4af" />
+              </linearGradient>
+            </defs>
+            <path d="M60 14L97 29V58.5C97 82.5 81.2 99.8 60 107C38.8 99.8 23 82.5 23 58.5V29L60 14Z"
+                  fill="#1a0b2e" stroke="url(#aivelShieldGradSplash)" stroke-width="6.5" stroke-linejoin="round" />
+            <path d="M60 35L79 84H68.5L64.4 72.5H55.6L51.5 84H41L60 35ZM58.2 64.2H61.8L60 57.6L58.2 64.2Z"
+                  fill="url(#aivelLetterGradSplash)" />
+          </svg>
         </div>
-        <div class="top-actions">
-          <button class="pill-btn active-glow" onclick="openBot()">💬 <span id="lbl_bot">Чат-бот</span></button>
-          <button class="pill-btn" onclick="openSupport()">🎧 <span id="lbl_sup">Поддержка</span></button>
-          <button class="circle-btn" onclick="showToast('Тёмная тема')" title="Тема">🌙</button>
+        <div class="text-lg font-extrabold tracking-wide text-white">AIVEL VPN</div>
+      </div>
+      <p id="splashCaption" class="text-[11px] tracking-[0.18em] uppercase text-slate-400 text-center">
+        МЫ ПОДКЛЮЧИМ ВАС К МИРУ
+      </p>
+    </div>
+
+    <!-- ==================== TOP BAR ==================== -->
+    <header id="miniAppHeader" class="relative z-20 px-4 pt-3 pb-2 space-y-2.5">
+      <div class="flex items-center justify-between gap-2">
+        <div id="headerBrand" class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-[#0b0716] border border-fuchsia-400/35 flex items-center justify-center shadow-lg shadow-fuchsia-600/25 p-1">
+            <svg class="w-full h-full" viewBox="0 0 120 120" fill="none" aria-label="AIVEL VPN">
+              <defs>
+                <linearGradient id="aivelShieldGradTop" x1="22" y1="14" x2="98" y2="106" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#818cf8" />
+                  <stop offset="50%" stop-color="#d946ef" />
+                  <stop offset="100%" stop-color="#fb7185" />
+                </linearGradient>
+                <linearGradient id="aivelLetterGradTop" x1="42" y1="36" x2="78" y2="88" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#c084fc" />
+                  <stop offset="55%" stop-color="#f0abfc" />
+                  <stop offset="100%" stop-color="#fda4af" />
+                </linearGradient>
+              </defs>
+              <path d="M60 14L97 29V58.5C97 82.5 81.2 99.8 60 107C38.8 99.8 23 82.5 23 58.5V29L60 14Z"
+                    fill="#1a0b2e" stroke="url(#aivelShieldGradTop)" stroke-width="6.5" stroke-linejoin="round" />
+              <path d="M60 35L79 84H68.5L64.4 72.5H55.6L51.5 84H41L60 35ZM58.2 64.2H61.8L60 57.6L58.2 64.2Z"
+                    fill="url(#aivelLetterGradTop)" />
+            </svg>
+          </div>
+          <span class="font-extrabold text-[17px] tracking-tight text-white">AIVEL VPN</span>
+        </div>
+
+        <button id="headerBackBtn" onclick="goBackFromSubscreen()" class="hidden glass-panel glass-interactive flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white">
+          <span>←</span>
+          <span data-i18n="back">Назад</span>
+        </button>
+
+        <div class="flex items-center gap-1.5">
+          <button id="modeToggleBtn" onclick="toggleShellMode()" class="px-2.5 py-2 rounded-full bg-purple-500/20 border border-purple-400/35 text-[11px] font-bold text-purple-200 hover:bg-purple-500/30 transition">
+            💬 Чат-бот
+          </button>
+
+          <button onclick="openHelpSheet()" class="glass-panel glass-interactive flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold text-slate-100">
+            <svg class="w-4 h-4 text-purple-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 18v-6a9 9 0 0118 0v6" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z" />
+            </svg>
+            <span data-i18n="support">Поддержка</span>
+          </button>
+
+          <!-- Sleep / Do Not Disturb Theme Toggle Button -->
+          <button id="themeToggleBtn" onclick="toggleColorTheme()" title="Переключить тему" aria-label="Переключить тему" class="glass-panel glass-interactive w-9 h-9 rounded-full flex items-center justify-center text-purple-200">
+            <svg id="themeMoonIcon" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          </button>
         </div>
       </div>
 
-      <div class="lang-row">
-        <button class="lang-pill active" data-lang="RU" onclick="setLang('RU')">🇷🇺 RU</button>
-        <button class="lang-pill" data-lang="UZ" onclick="setLang('UZ')">UZ</button>
-        <button class="lang-pill" data-lang="TJ" onclick="setLang('TJ')">TJ</button>
-        <button class="lang-pill" data-lang="KZ" onclick="setLang('KZ')">KZ</button>
-        <button class="lang-pill" data-lang="KG" onclick="setLang('KG')">KG</button>
+      <!-- Quick Flag Language Switcher Row -->
+      <div class="grid grid-cols-5 gap-1.5">
+        <button type="button" data-flag-lang="ru" onclick="setLanguage('ru')" class="flag-pill-btn py-1.5 px-1 rounded-full bg-purple-600/40 border border-fuchsia-400/70 text-[11px] font-extrabold text-white flex items-center justify-center gap-1 shadow-sm transition">
+          <span>🇷🇺</span><span>RU</span>
+        </button>
+        <button type="button" data-flag-lang="uz" onclick="setLanguage('uz')" class="flag-pill-btn py-1.5 px-1 rounded-full glass-panel text-[11px] font-semibold text-slate-300 flex items-center justify-center gap-1 transition">
+          <span>🇺🇿</span><span>UZ</span>
+        </button>
+        <button type="button" data-flag-lang="tg" onclick="setLanguage('tg')" class="flag-pill-btn py-1.5 px-1 rounded-full glass-panel text-[11px] font-semibold text-slate-300 flex items-center justify-center gap-1 transition">
+          <span>🇹🇯</span><span>TJ</span>
+        </button>
+        <button type="button" data-flag-lang="kk" onclick="setLanguage('kk')" class="flag-pill-btn py-1.5 px-1 rounded-full glass-panel text-[11px] font-semibold text-slate-300 flex items-center justify-center gap-1 transition">
+          <span>🇰🇿</span><span>KZ</span>
+        </button>
+        <button type="button" data-flag-lang="ky" onclick="setLanguage('ky')" class="flag-pill-btn py-1.5 px-1 rounded-full glass-panel text-[11px] font-semibold text-slate-300 flex items-center justify-center gap-1 transition">
+          <span>🇰🇬</span><span>KG</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ==================== TELEGRAM BOT CHAT SIMULATOR VIEW ==================== -->
+    <div id="botChatView" class="hidden relative z-10 flex-1 flex flex-col justify-between bot-chat-bg">
+      <div class="px-4 py-2.5 bg-[#161321]/95 border-b border-white/10 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <button onclick="toggleShellMode('miniapp')" class="text-slate-300 text-base px-1" title="Открыть Mini App">←</button>
+          <div class="w-9 h-9 rounded-full bg-[#0b0716] border border-fuchsia-400/40 flex items-center justify-center p-1">
+            <svg class="w-full h-full" viewBox="0 0 120 120" fill="none">
+              <path d="M60 14L97 29V58.5C97 82.5 81.2 99.8 60 107C38.8 99.8 23 82.5 23 58.5V29L60 14Z"
+                    fill="#1a0b2e" stroke="#d946ef" stroke-width="6.5" stroke-linejoin="round" />
+              <path d="M60 35L79 84H68.5L64.4 72.5H55.6L51.5 84H41L60 35ZM58.2 64.2H61.8L60 57.6L58.2 64.2Z"
+                    fill="#f0abfc" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm font-bold text-white leading-tight">AIVEL VPN</div>
+            <div class="text-[11px] text-emerald-400">бот</div>
+          </div>
+        </div>
+        <button onclick="openMiniAppAt('home')" class="px-2.5 py-1 rounded-lg bg-purple-600/30 border border-purple-400/40 text-[11px] font-bold text-purple-200">
+          Mini App ↗
+        </button>
+      </div>
+
+      <div id="botMessagesStream" class="flex-1 px-3.5 py-3 space-y-3 overflow-y-auto pb-6">
+        <div class="bg-[#1b1729] border border-white/10 rounded-2xl rounded-tl-sm p-3.5 space-y-2.5 shadow-lg">
+          <p class="text-xs text-slate-200 leading-relaxed">
+            Добро пожаловать в <strong>AIVEL VPN</strong>! 👋<br/>
+            Статус доступа: <strong id="botSubStatusText" class="text-amber-300">Пробный доступен (2 дня · 5 ГБ)</strong>
+          </p>
+
+          <div class="bg-black/35 border border-white/10 rounded-xl p-2.5 text-[11px] text-slate-200 space-y-1">
+            <div>⚡ Высокая скорость и стабильное соединение</div>
+            <div>📱 Устройства: Android, iOS, macOS, Windows</div>
+            <div>💳 Тарифы: 1 мес — 80 ₽ · 3 мес — 190 ₽ · 6 мес — 490 ₽</div>
+            <div>🤍 Всегда на связи — спасибо, что вы с нами!</div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <button id="botTrialBtn" onclick="activateTrialInstant()" class="btn-green-accent w-full py-3 px-4 rounded-xl text-xs font-extrabold text-white flex items-center justify-center gap-2">
+            <span>🎁</span>
+            <span id="botTrialBtnLabel">Активировать 2 дня бесплатно</span>
+          </button>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="openMiniAppAt('tariffs')" class="btn-green-accent py-2.5 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1.5">
+              <span>💳</span>
+              <span>Купить/Продлить</span>
+            </button>
+
+            <button onclick="openMiniAppAt('profile')" class="btn-blue-accent py-2.5 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1.5">
+              <span>🔗</span>
+              <span>Моя подписка</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="openMiniAppAt('install')" class="btn-dark-bot py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-100 flex items-center justify-center gap-1.5">
+              <span>📲</span>
+              <span>Установить</span>
+            </button>
+
+            <button onclick="openHelpSheet()" class="btn-dark-bot py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-100 flex items-center justify-center gap-1.5">
+              <span>ⓘ</span>
+              <span>Помощь</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="openMiniAppAt('referral')" class="btn-dark-bot py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-100 flex items-center justify-center gap-1.5">
+              <span>👥</span>
+              <span>Пригласи друга</span>
+            </button>
+
+            <button onclick="openMiniAppAt('tariffs')" class="btn-dark-bot py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-100 flex items-center justify-center gap-1.5">
+              <span>🎁</span>
+              <span>Подарить подписку</span>
+            </button>
+          </div>
+
+          <button onclick="openAgreementModal()" class="btn-dark-bot w-full py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-200 flex items-center justify-center gap-1.5">
+            <span>📄</span>
+            <span>Пользовательское соглашение</span>
+          </button>
+        </div>
+
+        <div id="botUserActionLog" class="hidden text-right">
+          <span id="botUserActionBubble" class="inline-block px-3 py-1.5 rounded-2xl rounded-br-sm bg-purple-700/80 text-xs font-semibold text-white">
+            Главный экран 🏠
+          </span>
+        </div>
+      </div>
+
+      <div class="bg-[#151220] border-t border-white/10 p-2 space-y-2">
+        <button onclick="triggerBotMainScreen()" class="btn-dark-bot w-full py-2.5 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2">
+          <span>Главный экран</span>
+          <span>🏠</span>
+        </button>
+        <div class="flex items-center justify-between px-2 text-[11px] text-slate-400">
+          <span>☰ Меню AIVEL VPN</span>
+          <button onclick="openMiniAppAt('home')" class="text-purple-300 font-semibold">Открыть Mini App →</button>
+        </div>
       </div>
     </div>
 
-    <!-- ГЛАВНАЯ -->
-    <section id="page-home" class="page active">
-      <div class="card">
-        <div class="row-between">
+    <!-- ==================== MAIN SCROLLABLE CONTENT (MINI APP) ==================== -->
+    <main id="miniAppMain" class="relative z-10 flex-1 px-4 pt-2 pb-28 overflow-y-auto">
+
+      <!-- ==================== TAB 1: ГЛАВНАЯ ==================== -->
+      <section id="view-home" class="view-animate space-y-3.5">
+        <div class="glass-panel rounded-2xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-extrabold text-white">AIVEL VPN • Пробный доступ</div>
+              <div id="homeTrialStatusHint" class="text-[11px] text-slate-400">2 дня и 5 ГБ бесплатно перед покупкой</div>
+            </div>
+            <span id="homeTrialPill" class="px-2.5 py-1 rounded-full bg-purple-500/20 border border-fuchsia-400/35 text-[10px] font-bold text-fuchsia-200">
+              Доступно
+            </span>
+          </div>
+
+          <button id="homeTrialBtn" onclick="activateTrialInstant()" class="alive-cta w-full py-3 px-4 rounded-xl text-xs font-extrabold text-white flex items-center justify-center gap-1.5">
+            <span>⚡</span>
+            <span id="homeTrialBtnLabel">Активировать 2 дня бесплатно</span>
+          </button>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="openSubscreen('tariffs')" class="alive-cta py-2.5 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1">
+              <span>💳</span>
+              <span>Купить/Продлить</span>
+            </button>
+            <button onclick="navigateTab('profile')" class="btn-blue-accent py-2.5 px-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1">
+              <span>🔗</span>
+              <span>Моя подписка</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Subscription days & traffic cards -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="glass-panel rounded-2xl p-3.5 flex flex-col justify-between min-h-[126px]">
+            <div class="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-400/25 flex items-center justify-center text-sm">
+              📅
+            </div>
+            <div class="my-2">
+              <div class="flex items-baseline gap-1.5">
+                <span id="homeDaysVal" class="text-2xl font-extrabold text-white">2</span>
+                <span class="text-xs text-slate-400" data-i18n="daysWord">дня</span>
+              </div>
+              <div class="text-[11px] text-slate-400" data-i18n="trialLabel">пробный период</div>
+            </div>
+            <button onclick="openSubscreen('tariffs')" class="alive-cta w-full py-2 rounded-xl text-xs font-extrabold text-white transition" data-i18n="renewBtn">
+              Продлить
+            </button>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-3.5 flex flex-col justify-between min-h-[126px]">
+            <div class="w-8 h-8 rounded-lg bg-pink-500/15 border border-pink-400/25 flex items-center justify-center text-sm">
+              ⇅
+            </div>
+            <div class="my-2">
+              <div class="flex items-baseline gap-1">
+                <span class="text-2xl font-extrabold text-white">0</span>
+                <span class="text-xs text-slate-400">/ <span id="homeTrafficVal">5</span> ГБ</span>
+              </div>
+              <div class="text-[11px] text-slate-400" data-i18n="trafficPeriod">пробный лимит</div>
+            </div>
+            <button onclick="openSubscreen('tariffs')" class="w-full py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-purple-400/25 text-xs font-bold text-white transition" data-i18n="increaseBtn">
+              Увеличить
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick device switcher card -->
+        <div class="glass-panel rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5">
+              <button onclick="selectQuickDevice('Android')" data-quick-dev="Android" class="quick-dev-btn px-2.5 py-1.5 rounded-xl bg-purple-500/25 border border-purple-400/50 text-xs font-bold text-white">Android</button>
+              <button onclick="selectQuickDevice('iOS')" data-quick-dev="iOS" class="quick-dev-btn px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-slate-300">iOS</button>
+              <button onclick="selectQuickDevice('macOS')" data-quick-dev="macOS" class="quick-dev-btn px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-slate-300">macOS</button>
+              <button onclick="selectQuickDevice('Windows')" data-quick-dev="Windows" class="quick-dev-btn px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-slate-300">Windows</button>
+            </div>
+            <button onclick="navigateTab('install')" class="text-slate-400 hover:text-white text-sm px-1">›</button>
+          </div>
+
           <div>
-            <h2 class="title-md" id="lbl_trial_title">AIVEL VPN • Пробный доступ</h2>
-            <p class="sub-txt" id="lbl_trial_sub">2 дня и 5 ГБ бесплатно перед покупкой</p>
+            <div id="quickDeviceTitle" class="text-base font-extrabold text-white">Android</div>
+            <div class="text-xs text-slate-400" data-i18n="twoStepsHint">Пара шагов — и VPN настроен</div>
           </div>
-          <span class="badge" id="trialBadge">Доступно</span>
+
+          <button onclick="navigateTab('install')" class="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white flex items-center justify-center gap-2 transition">
+            <span data-i18n="connectBtn">Подключить</span>
+            <span>→</span>
+          </button>
         </div>
 
-        <button class="btn-gradient" id="trialBtn" onclick="activateTrial()">⚡ Активировать 2 дня бесплатно</button>
+        <!-- 2x2 quick actions grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="openSubscreen('locations')" class="glass-panel glass-interactive rounded-2xl p-3.5 text-left space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-sm">🌐</div>
+            <div class="text-sm font-bold text-white" data-i18n="locationsTitle">Локации</div>
+            <div class="text-[11px] text-slate-400" data-i18n="locationsSub">Страны и города</div>
+          </button>
 
-        <div class="grid-2" style="margin-top:10px;margin-bottom:0;">
-          <button class="btn-pink" onclick="openPage('tariffs')">💳 <span id="lbl_buy">Купить/Продлить</span></button>
-          <button class="btn-blue" onclick="openPage('profile')">🔗 <span id="lbl_mysub">Моя подписка</span></button>
-        </div>
-      </div>
+          <button onclick="openSubscreen('devices')" class="glass-panel glass-interactive rounded-2xl p-3.5 text-left space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-sm">💻</div>
+            <div class="text-sm font-bold text-white" data-i18n="devicesTitle">Устройства</div>
+            <div class="text-[11px] text-slate-400" data-i18n="devicesSub">Что подключено</div>
+          </button>
 
-      <div class="grid-2">
-        <div class="card" style="margin-bottom:0;">
-          <div class="ico-sq">📅</div>
-          <div class="stat-num" id="homeDays">2 <span id="lbl_days">дня</span></div>
-          <div class="sub-txt" style="margin-bottom:10px;" id="lbl_period">пробный период</div>
-          <button class="btn-pink" style="width:100%;" onclick="openPage('tariffs')" id="lbl_extend">Продлить</button>
-        </div>
-        <div class="card" style="margin-bottom:0;">
-          <div class="ico-sq">⇅</div>
-          <div class="stat-num">0 <span>/ 5 ГБ</span></div>
-          <div class="sub-txt" style="margin-bottom:10px;" id="lbl_limit">пробный лимит</div>
-          <button class="btn-surface" onclick="openPage('tariffs')" id="lbl_increase">Увеличить</button>
-        </div>
-      </div>
+          <button onclick="openSubscreen('traffic')" class="glass-panel glass-interactive rounded-2xl p-3.5 text-left space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sm">📊</div>
+            <div class="text-sm font-bold text-white" data-i18n="statsTitle">Статистика</div>
+            <div class="text-[11px] text-slate-400" data-i18n="statsSub">Потребление ГБ</div>
+          </button>
 
-      <div class="card">
-        <div class="row-between">
-          <div class="os-pills">
-            <button class="os-pill active" data-os="Android" onclick="setHomeOs('Android')">Android</button>
-            <button class="os-pill" data-os="iOS" onclick="setHomeOs('iOS')">iOS</button>
-            <button class="os-pill" data-os="macOS" onclick="setHomeOs('macOS')">macOS</button>
-            <button class="os-pill" data-os="Windows" onclick="setHomeOs('Windows')">Windows</button>
+          <button onclick="navigateTab('referral')" class="glass-panel glass-interactive rounded-2xl p-3.5 text-left space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-sm">🎁</div>
+            <div class="text-sm font-bold text-white" data-i18n="inviteTitle">Пригласить</div>
+            <div class="text-[11px] text-slate-400" data-i18n="inviteSub">+7 дней за друга</div>
+          </button>
+        </div>
+
+        <!-- News block -->
+        <div class="glass-panel rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-white" data-i18n="latestNews">Последние новости</h3>
+            <button onclick="showToast('Открытие канала новостей AIVEL VPN')" class="text-xs font-semibold text-purple-300 flex items-center gap-1">
+              <span data-i18n="channelLink">Канал</span>
+              <span>↗</span>
+            </button>
           </div>
-          <span style="color:var(--muted);cursor:pointer;font-size:16px;" onclick="openPage('install')">›</span>
-        </div>
-        <div class="title-lg" style="margin-top:12px;font-size:15px;" id="homeOsTitle">Android</div>
-        <div class="sub-txt" style="margin-bottom:11px;" id="lbl_os_sub">Пара шагов — и VPN настроен</div>
-        <button class="btn-surface" onclick="openPage('install')" id="lbl_connect">Подключить →</button>
-      </div>
 
-      <div class="grid-2">
-        <button class="tile" onclick="openPage('locations')">
-          <div class="ico-sq">🌐</div>
-          <div class="title-md" style="margin-top:10px;" id="lbl_loc">Локации</div>
-          <p class="sub-txt" id="lbl_loc_sub">Страны и города</p>
-        </button>
-        <button class="tile" onclick="openPage('profile')">
-          <div class="ico-sq">💻</div>
-          <div class="title-md" style="margin-top:10px;" id="lbl_dev">Устройства</div>
-          <p class="sub-txt" id="lbl_dev_sub">Что подключено</p>
-        </button>
-      </div>
+          <div class="space-y-2.5">
+            <div onclick="showToast('Обновление маршрутов AIVEL VPN для стабильной скорости')" class="p-3 rounded-xl bg-white/[0.03] border border-white/5 cursor-pointer hover:border-purple-400/30 transition">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="text-xs font-bold text-white">Высокая скорость и обход ограничений</span>
+                <span class="text-[11px] text-slate-400">26.11</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                Добавлены оптимизированные узлы с низким пингом для мессенджеров, видео и браузера.
+              </p>
+            </div>
 
-      <div class="grid-2">
-        <button class="tile" onclick="openPage('traffic')">
-          <div class="ico-sq">📊</div>
-          <div class="title-md" style="margin-top:10px;" id="lbl_stat">Статистика</div>
-          <p class="sub-txt" id="lbl_stat_sub">Потребление ГБ</p>
-        </button>
-        <button class="tile" onclick="openPage('referral')">
-          <div class="ico-sq">🎁</div>
-          <div class="title-md" style="margin-top:10px;" id="lbl_inv">Пригласить</div>
-          <p class="sub-txt" id="lbl_inv_sub">+7 дней за друга</p>
-        </button>
-      </div>
-
-      <div class="card">
-        <div class="row-between" style="margin-bottom:4px;">
-          <h3 class="title-md" id="lbl_news">Последние новости</h3>
-          <span class="pill-btn" onclick="openBot()">Канал ↗</span>
-        </div>
-        <div class="news-row">
-          <div class="row-between">
-            <strong style="font-size:12px;">Высокая скорость и обход ограничений</strong>
-            <span class="sub-txt">26.11</span>
-          </div>
-          <p class="sub-txt">Добавлены оптимизированные узлы с низким пингом для мессенджеров, видео и браузера.</p>
-        </div>
-        <div class="news-row">
-          <div class="row-between">
-            <strong style="font-size:12px;">Пробный период 2 дня и 5 ГБ</strong>
-            <span class="sub-txt">20.11</span>
-          </div>
-          <p class="sub-txt">Проверьте работу AIVEL VPN на любом устройстве перед выбором тарифа.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ТАРИФЫ -->
-    <section id="page-tariffs" class="page">
-      <div class="card">
-        <div class="row-between" style="margin-bottom:10px;">
-          <button class="pill-btn" onclick="openPage('home')">← Назад</button>
-          <span class="badge">AIVEL VPN</span>
-        </div>
-        <h2 class="title-lg">Продление подписки</h2>
-        <div class="micro-upper" style="margin-top:4px;">ВЫБЕРИТЕ ПЕРИОД</div>
-
-        <div class="tariff-grid">
-          <div class="tariff-card selected" data-plan="1 месяц" data-days="30" data-price="80" onclick="selectTariff(this)">
-            <div class="tag">СТАРТ</div>
-            <div class="tariff-price">80 ₽</div>
-            <div class="sub-txt">1 месяц</div>
-            <div class="sub-txt" style="color:#a78bfa;">80 ₽ / мес</div>
-          </div>
-          <div class="tariff-card" data-plan="3 месяца" data-days="90" data-price="190" onclick="selectTariff(this)">
-            <div class="tag pop">Популярный</div>
-            <div class="tariff-price">190 ₽</div>
-            <div class="sub-txt">3 месяца</div>
-            <div class="sub-txt" style="color:#a78bfa;">~63 ₽ / мес</div>
-          </div>
-          <div class="tariff-card" data-plan="6 месяцев" data-days="180" data-price="490" onclick="selectTariff(this)">
-            <div class="tag good">ВЫГОДНО</div>
-            <div class="tariff-price">490 ₽</div>
-            <div class="sub-txt">6 месяцев</div>
-            <div class="sub-txt" style="color:#a78bfa;">~82 ₽ / мес</div>
+            <div onclick="showToast('Пробный доступ 2 дня / 5 ГБ доступен новым пользователям')" class="p-3 rounded-xl bg-white/[0.03] border border-white/5 cursor-pointer hover:border-purple-400/30 transition">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="text-xs font-bold text-white">Пробный период 2 дня и 5 ГБ</span>
+                <span class="text-[11px] text-slate-400">20.11</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                Проверьте работу AIVEL VPN на любом устройстве перед выбором тарифа.
+              </p>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div class="summary-panel">
-          <div class="row-between">
-            <span class="sub-txt">Выбранный тариф:</span>
-            <strong id="tariffSummaryText">1 месяц — 80 ₽</strong>
+      <!-- ==================== TAB 2: УСТАНОВИТЬ ==================== -->
+      <section id="view-install" class="view-animate hidden space-y-4">
+        <div class="flex items-center justify-center gap-3 pt-1">
+          <div id="stepCircle1" class="w-8 h-8 rounded-full cta-gradient flex items-center justify-center text-xs font-extrabold text-white">1</div>
+          <div class="w-12 h-[2px] bg-white/15 rounded-full overflow-hidden">
+            <div id="stepLineFill" class="h-full w-0 bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"></div>
           </div>
-          <div class="row-between" style="margin-top:6px;">
-            <span class="sub-txt">Устройства:</span>
-            <span>Android, iOS, macOS, Windows</span>
-          </div>
-        </div>
-
-        <button class="btn-blue" style="width:100%;margin-top:12px;padding:12px;font-size:13px;" id="tariffPayBtn" onclick="confirmTariff()">
-          Подключить · 80 ₽ →
-        </button>
-      </div>
-
-      <div class="card">
-        <h3 class="title-md">Почему AIVEL VPN?</h3>
-        <ul class="check-list">
-          <li>✅ Стабильное высокоскоростное соединение</li>
-          <li>✅ Поддержка Android, iOS, macOS и Windows</li>
-          <li>✅ Пробный доступ 2 дня и 5 ГБ перед оплатой</li>
-          <li>✅ Интерфейс на 5 языках</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- УСТАНОВКА (2 ШАГА) -->
-    <section id="page-install" class="page">
-      <div class="card">
-        <div class="stepper">
-          <span class="step-dot active" id="dotStep1">1</span>
-          <span class="step-line"></span>
-          <span class="step-dot" id="dotStep2">2</span>
+          <div id="stepCircle2" class="w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs font-bold text-slate-400">2</div>
         </div>
 
         <div id="installStep1">
-          <h2 class="title-lg">Выберите устройство</h2>
-          <p class="sub-txt">На какое устройство подключаем AIVEL VPN?</p>
+          <div class="text-center space-y-1 mb-4">
+            <h2 class="text-xl font-extrabold text-white" data-i18n="chooseDevice">Выберите устройство</h2>
+            <p class="text-xs text-slate-400" data-i18n="chooseDeviceSub">На какое устройство подключаем AIVEL VPN?</p>
+          </div>
 
-          <div class="device-grid">
-            <div class="device-box selected" data-dev="Android" onclick="pickDevice(this)">
-              <div style="font-size:22px;">🤖</div>
-              <div class="title-md" style="margin-top:6px;">Android</div>
+          <div class="grid grid-cols-2 gap-3 mb-5">
+            <button type="button" data-platform="Android" onclick="selectPlatform('Android')" class="platform-card card-active glass-panel rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 text-center transition">
+              <span class="text-2xl">🤖</span>
+              <span class="text-sm font-bold text-white">Android</span>
+            </button>
+
+            <button type="button" data-platform="iOS" onclick="selectPlatform('iOS')" class="platform-card glass-panel rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 text-center transition">
+              <span class="text-2xl">📱</span>
+              <span class="text-sm font-bold text-white">iOS</span>
+            </button>
+
+            <button type="button" data-platform="macOS" onclick="selectPlatform('macOS')" class="platform-card glass-panel rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 text-center transition">
+              <span class="text-2xl">💻</span>
+              <span class="text-sm font-bold text-white">macOS</span>
+            </button>
+
+            <button type="button" data-platform="Windows" onclick="selectPlatform('Windows')" class="platform-card glass-panel rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 text-center transition">
+              <span class="text-2xl">🖥️</span>
+              <span class="text-sm font-bold text-white">Windows</span>
+            </button>
+          </div>
+
+          <button onclick="goToInstallStep2()" class="alive-cta w-full py-3.5 rounded-2xl text-sm font-extrabold text-white" data-i18n="continueBtn">
+            Продолжить
+          </button>
+        </div>
+
+        <div id="installStep2" class="hidden space-y-3.5">
+          <div class="text-center space-y-1">
+            <h2 id="setupHeading" class="text-lg font-extrabold text-white">Android — 2 простых шага</h2>
+            <p class="text-xs text-slate-400" data-i18n="setupSub">Скачайте клиент и добавьте профиль AIVEL VPN</p>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-1 grid grid-cols-2 gap-1">
+            <button id="clientTabHapp" onclick="switchClientApp('Happ')" class="py-2 rounded-xl bg-purple-600/40 border border-purple-400/50 text-xs font-bold text-white transition">
+              Happ
+            </button>
+            <button id="clientTabV2Ray" onclick="switchClientApp('v2RayTun')" class="py-2 rounded-xl text-xs font-semibold text-slate-400 transition">
+              v2RayTun
+            </button>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-4 space-y-3">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-purple-500/25 border border-purple-400/40 text-xs font-extrabold text-purple-200 flex items-center justify-center">1</span>
+              <span class="text-sm font-bold text-white" data-i18n="step1App">Скачайте приложение</span>
             </div>
-            <div class="device-box" data-dev="iOS" onclick="pickDevice(this)">
-              <div style="font-size:22px;">📱</div>
-              <div class="title-md" style="margin-top:6px;">iOS</div>
+            <p id="clientAppHint" class="text-xs text-slate-400 leading-relaxed">
+              Установите клиент Happ для выбранной платформы, чтобы подключить профиль AIVEL VPN.
+            </p>
+            <button onclick="showToast('Загрузка клиента для ' + appState.selectedPlatform)" class="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition">
+              ⬇ <span id="downloadClientBtnText">Скачать Happ</span>
+            </button>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-4 space-y-3">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-pink-500/25 border border-pink-400/40 text-xs font-extrabold text-pink-200 flex items-center justify-center">2</span>
+              <span class="text-sm font-bold text-white" data-i18n="step2Config">Подключите конфиг</span>
             </div>
-            <div class="device-box" data-dev="macOS" onclick="pickDevice(this)">
-              <div style="font-size:22px;">💻</div>
-              <div class="title-md" style="margin-top:6px;">macOS</div>
+            <p class="text-xs text-slate-400 leading-relaxed" data-i18n="autoConfigHint">
+              Настройки профиля подставятся автоматически после нажатия кнопки подключения.
+            </p>
+            <button onclick="connectConfigAction()" class="alive-cta w-full py-3 px-4 rounded-xl text-xs font-extrabold text-white flex items-center justify-center gap-2">
+              <span>⚡</span>
+              <span data-i18n="connectNow">Подключиться</span>
+            </button>
+          </div>
+
+          <button onclick="markSetupDone()" class="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition" data-i18n="setupDoneBtn">
+            Готово, VPN настроен
+          </button>
+
+          <button onclick="backToInstallStep1()" class="w-full py-1.5 text-xs font-semibold text-slate-400 hover:text-white transition">
+            ‹ <span data-i18n="otherDevice">Выбрать другое устройство</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 3: РЕФЕРАЛКА ==================== -->
+      <section id="view-referral" class="view-animate hidden space-y-3.5">
+        <div class="glass-panel rounded-2xl p-4 space-y-3.5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="space-y-1">
+              <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-300" data-i18n="bonusProgram">БОНУСНАЯ ПРОГРАММА</div>
+              <h2 class="text-lg font-extrabold text-white" data-i18n="freeVpnTitle">Бесплатный VPN</h2>
+              <p class="text-xs text-slate-400" data-i18n="refSubtitle">Приглашайте друзей и получайте бесплатные дни подписки</p>
             </div>
-            <div class="device-box" data-dev="Windows" onclick="pickDevice(this)">
-              <div style="font-size:22px;">🖥️</div>
-              <div class="title-md" style="margin-top:6px;">Windows</div>
+            <div class="w-10 h-10 rounded-xl bg-pink-500/15 border border-pink-400/30 flex items-center justify-center text-lg">
+              🎁
             </div>
           </div>
 
-          <button class="btn-gradient" onclick="goInstallStep(2)">Продолжить</button>
-        </div>
-
-        <div id="installStep2" style="display:none;">
-          <h2 class="title-lg">Подключение • <span id="chosenDeviceTitle">Android</span></h2>
-          <p class="sub-txt" id="chosenDeviceDesc">Установите v2rayNG или Hiddify, скопируйте ключ ниже и добавьте профиль.</p>
-          <div class="link-box" id="installKeyBox">vless://aivel-vpn-key-android-ru@aivel.example:443</div>
-          <button class="btn-gradient" onclick="copyInstallKey()">📋 Скопировать ключ</button>
-          <button class="btn-surface" style="margin-top:8px;" onclick="goInstallStep(1)">← Назад к выбору устройства</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ЛОКАЦИИ -->
-    <section id="page-locations" class="page">
-      <div class="card">
-        <h2 class="title-lg">Локации</h2>
-        <p class="sub-txt">Выберите оптимальный регион подключения в приложении AIVEL VPN</p>
-
-        <div class="loc-item active" onclick="chooseLocation('Авто', this)">
-          <div>
-            <div class="title-md">Автоматический регион</div>
-            <div class="sub-txt">Наименьшая задержка</div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div class="rounded-xl bg-black/30 border border-white/10 p-3">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400" data-i18n="invitedLabel">ПРИГЛАШЕНО</div>
+              <div class="text-lg font-extrabold text-white mt-0.5">0 <span class="text-xs font-medium text-slate-400" data-i18n="peopleShort">чел.</span></div>
+            </div>
+            <div class="rounded-xl bg-black/30 border border-white/10 p-3">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400" data-i18n="earnedLabel">ПОЛУЧЕНО</div>
+              <div class="text-lg font-extrabold text-emerald-400 mt-0.5">+0 <span class="text-xs font-medium text-slate-400" data-i18n="daysWord">дней</span></div>
+            </div>
           </div>
-          <span class="badge">Авто</span>
-        </div>
 
-        <div class="micro-upper" style="margin-top:14px;">ЕВРОПА</div>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400" data-i18n="yourLink">ВАША ССЫЛКА</span>
+              <div class="inline-flex rounded-lg bg-black/40 p-0.5 border border-white/10">
+                <button id="refTypeBot" onclick="switchRefLinkType('bot')" class="px-2.5 py-1 rounded-md bg-purple-600/50 text-[11px] font-bold text-white transition" data-i18n="linkBot">Бот</button>
+                <button id="refTypeSite" onclick="switchRefLinkType('site')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-400 transition" data-i18n="linkSite">Сайт</button>
+              </div>
+            </div>
 
-        <div class="loc-item" onclick="chooseLocation('Нидерланды (Амстердам)', this)">
-          <div>
-            <div class="title-md">🇳🇱 Амстердам / Нидерланды (NL)</div>
-            <div class="sub-txt">Высокая пропускная способность</div>
+            <div class="flex items-center gap-2 rounded-xl bg-black/35 border border-white/10 p-2 pl-3">
+              <input id="refLinkInput" type="text" readonly value="https://t.me/aivelvpn_bot?start=ref_user" class="w-full bg-transparent text-xs text-slate-200 focus:outline-none truncate" />
+              <button onclick="copyRefLink()" class="shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition" data-i18n="copyBtn">
+                Копировать
+              </button>
+            </div>
           </div>
-          <span class="sub-txt">NL</span>
+
+          <button onclick="shareReferralLink()" class="alive-cta w-full py-3 rounded-2xl text-xs font-extrabold text-white flex items-center justify-center gap-2">
+            <span>↗</span>
+            <span data-i18n="shareBtn">Поделиться</span>
+          </button>
         </div>
 
-        <div class="loc-item" onclick="chooseLocation('Германия (Франкфурт)', this)">
-          <div>
-            <div class="title-md">🇩🇪 Франкфурт / Германия (DE)</div>
-            <div class="sub-txt">Стабильный европейский узел</div>
+        <div class="glass-panel rounded-2xl p-4 space-y-3">
+          <h3 class="text-sm font-extrabold text-white" data-i18n="howItWorks">Как это работает</h3>
+          <div class="space-y-2.5 text-xs">
+            <div class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-purple-500/20 border border-purple-400/35 text-purple-200 font-bold flex items-center justify-center shrink-0">1</span>
+              <div>
+                <div class="font-bold text-white" data-i18n="step1Ref">Поделитесь ссылкой</div>
+                <div class="text-slate-400" data-i18n="step1RefDesc">Отправьте другу вашу реферальную ссылку AIVEL VPN</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-purple-500/20 border border-purple-400/35 text-purple-200 font-bold flex items-center justify-center shrink-0">2</span>
+              <div>
+                <div class="font-bold text-white" data-i18n="step2Ref">Друг запускает VPN</div>
+                <div class="text-slate-400" data-i18n="step2RefDesc">Активирует пробный доступ или подключает тариф</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-400/35 text-emerald-300 font-bold flex items-center justify-center shrink-0">3</span>
+              <div>
+                <div class="font-bold text-emerald-300" data-i18n="step3Ref">Вы получаете +7 дней</div>
+                <div class="text-slate-400" data-i18n="step3RefDesc">Бонусные дни начисляются на ваш аккаунт</div>
+              </div>
+            </div>
           </div>
-          <span class="sub-txt">DE</span>
         </div>
 
-        <div class="loc-item" onclick="chooseLocation('Финляндия (Хельсинки)', this)">
-          <div>
-            <div class="title-md">🇫🇮 Хельсинки / Финляндия (FI)</div>
-            <div class="sub-txt">Быстрый маршрут</div>
+        <div class="glass-panel rounded-2xl p-4 flex items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="text-sm font-extrabold text-white" data-i18n="partnerProgram">Партнёрская программа</div>
+            <p class="text-xs text-slate-400" data-i18n="partnerDesc">Приглашайте авторов и получайте процент с оплат тарифов</p>
           </div>
-          <span class="sub-txt">FI</span>
+          <span class="text-slate-400 text-base">↗</span>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 4: ПРОФИЛЬ ==================== -->
+      <section id="view-profile" class="view-animate hidden space-y-3.5">
+        <h2 class="text-lg font-extrabold text-white px-0.5" data-i18n="profileTitle">Профиль</h2>
+
+        <div class="glass-panel rounded-2xl p-3.5 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-sm font-extrabold text-white shrink-0">
+              AV
+            </div>
+            <div class="min-w-0">
+              <div id="tgUserName" class="text-sm font-bold text-white truncate">@aivel_user</div>
+              <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                <span id="tgUserId">1944225789</span>
+                <button onclick="copyUserId()" class="text-purple-300 hover:text-white text-[11px]" title="Копировать ID">⧉</button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <button class="btn-pink" style="width:100%;margin-top:14px;padding:12px;font-size:13px;" onclick="openPage('install')">
+        <div class="glass-panel rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400" data-i18n="subscriptionLabel">ПОДПИСКА</div>
+              <div id="profilePlanName" class="text-base font-extrabold text-white">Пробный</div>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/35 text-[11px] font-bold text-emerald-300" data-i18n="activeStatus">
+              ● Активна
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5 text-xs">
+            <div class="rounded-xl bg-black/30 p-2.5 border border-white/5">
+              <div class="text-slate-400 text-[11px]" data-i18n="expiresIn">Срок действия</div>
+              <div class="font-bold text-white mt-0.5"><span id="profileDaysLeft">2</span> <span data-i18n="daysWord">дня</span></div>
+            </div>
+            <div class="rounded-xl bg-black/30 p-2.5 border border-white/5">
+              <div class="text-slate-400 text-[11px]" data-i18n="trafficLabel">Трафик</div>
+              <div class="font-bold text-white mt-0.5">0 ГБ <span class="text-slate-400 font-normal">из <span id="profileTrafficMax">5</span> ГБ</span></div>
+            </div>
+          </div>
+
+          <button onclick="openSubscreen('tariffs')" class="alive-cta w-full py-2.5 rounded-xl text-xs font-extrabold text-white" data-i18n="renewBtn">
+            Продлить
+          </button>
+        </div>
+
+        <div class="glass-panel rounded-2xl divide-y divide-white/10">
+          <button onclick="openSubscreen('traffic')" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/[0.03] transition">
+            <div>
+              <div class="text-sm font-bold text-white" data-i18n="trafficUsage">Потребление трафика</div>
+              <div class="text-xs text-slate-400" data-i18n="trafficUsageSub">По дням и серверам</div>
+            </div>
+            <span class="text-slate-400">›</span>
+          </button>
+
+          <button onclick="openSubscreen('devices')" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/[0.03] transition">
+            <div>
+              <div class="text-sm font-bold text-white" data-i18n="devicesTitle">Устройства</div>
+              <div id="profileDevicesCountText" class="text-xs text-slate-400">0 подключено</div>
+            </div>
+            <span class="text-slate-400">›</span>
+          </button>
+
+          <button onclick="openSubscreen('locations')" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/[0.03] transition">
+            <div>
+              <div class="text-sm font-bold text-white" data-i18n="locationsTitle">Локации</div>
+              <div class="text-xs text-slate-400" data-i18n="locationsSub">Страны и города</div>
+            </div>
+            <span class="text-slate-400">›</span>
+          </button>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-3.5 space-y-2.5">
+          <div class="text-xs font-bold text-slate-300" data-i18n="languageLabel">Язык / Тил / Забон</div>
+          <div class="grid grid-cols-5 gap-1.5">
+            <button data-lang="ru" onclick="setLanguage('ru')" class="lang-btn py-2 rounded-xl bg-purple-600/45 border border-purple-400/60 text-[11px] font-extrabold text-white">RU</button>
+            <button data-lang="uz" onclick="setLanguage('uz')" class="lang-btn py-2 rounded-xl bg-white/5 border border-white/10 text-[11px] font-semibold text-slate-300">UZ</button>
+            <button data-lang="tg" onclick="setLanguage('tg')" class="lang-btn py-2 rounded-xl bg-white/5 border border-white/10 text-[11px] font-semibold text-slate-300">TJ</button>
+            <button data-lang="ky" onclick="setLanguage('ky')" class="lang-btn py-2 rounded-xl bg-white/5 border border-white/10 text-[11px] font-semibold text-slate-300">KG</button>
+            <button data-lang="kk" onclick="setLanguage('kk')" class="lang-btn py-2 rounded-xl bg-white/5 border border-white/10 text-[11px] font-semibold text-slate-300">KZ</button>
+          </div>
+          <div id="activeLangName" class="text-[11px] text-slate-400">Выбран язык: Русский</div>
+        </div>
+
+        <div class="glass-panel rounded-2xl divide-y divide-white/10">
+          <button onclick="showToast('Переход в сообщество AIVEL VPN')" class="w-full p-3.5 flex items-center justify-between text-left">
+            <span class="text-sm font-medium text-white">Сообщество AIVEL VPN</span>
+            <span class="text-slate-400">↗</span>
+          </button>
+
+          <button onclick="openAgreementModal()" class="w-full p-3.5 flex items-center justify-between text-left">
+            <span class="text-sm font-medium text-white">Пользовательское соглашение</span>
+            <span class="text-slate-400">›</span>
+          </button>
+
+          <button onclick="openHelpSheet()" class="w-full p-3.5 flex items-center justify-between text-left">
+            <span class="text-sm font-medium text-white" data-i18n="helpTitle">Помощь</span>
+            <span class="text-slate-400">›</span>
+          </button>
+
+          <button onclick="openHelpSheet()" class="w-full p-3.5 flex items-center justify-between text-left">
+            <span class="text-sm font-medium text-white" data-i18n="support">Поддержка</span>
+            <span class="text-slate-400">›</span>
+          </button>
+
+          <div class="p-3.5 flex items-center justify-between gap-3">
+            <div>
+              <div class="text-sm font-medium text-white" data-i18n="lowVisionTitle">Версия для слабовидящих</div>
+              <div class="text-xs text-slate-400" data-i18n="lowVisionSub">Светлый фон, без анимаций</div>
+            </div>
+            <button id="lowVisionToggle" role="switch" aria-checked="false" onclick="toggleLowVision()" class="w-12 h-7 rounded-full bg-white/15 p-1 transition flex items-center">
+              <span id="lowVisionKnob" class="w-5 h-5 rounded-full bg-white transition-transform translate-x-0"></span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SUBSCREEN: ТАРИФЫ И ПРОДЛЕНИЕ ==================== -->
+      <section id="subview-tariffs" class="view-animate hidden space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-extrabold text-white" data-i18n="renewSubscription">Продление подписки</h2>
+          <span class="px-2.5 py-1 rounded-lg bg-purple-500/20 border border-purple-400/35 text-[11px] font-bold text-purple-200">
+            AIVEL VPN
+          </span>
+        </div>
+
+        <div class="space-y-2">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-400" data-i18n="choosePeriod">Выберите период</div>
+
+          <div class="grid grid-cols-3 gap-2.5">
+            <button type="button" data-months="1" data-price="80" data-label="1 месяц" onclick="selectTariff(this)" class="tariff-card card-active glass-panel rounded-2xl p-3 text-left flex flex-col justify-between min-h-[116px] transition">
+              <div class="text-[10px] font-bold text-slate-400 uppercase">СТАРТ</div>
+              <div>
+                <div class="text-lg font-extrabold text-white">80 ₽</div>
+                <div class="text-[11px] text-slate-300 font-medium">1 месяц</div>
+              </div>
+              <div class="text-[10px] text-slate-400">80 ₽ / мес</div>
+            </button>
+
+            <button type="button" data-months="3" data-price="190" data-label="3 месяца" onclick="selectTariff(this)" class="tariff-card glass-panel rounded-2xl p-3 text-left flex flex-col justify-between min-h-[116px] relative transition">
+              <span class="px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-[9px] font-extrabold text-white self-start">
+                Популярный
+              </span>
+              <div>
+                <div class="text-lg font-extrabold text-white">190 ₽</div>
+                <div class="text-[11px] text-slate-300 font-medium">3 месяца</div>
+              </div>
+              <div class="text-[10px] text-emerald-400 font-semibold">~63 ₽ / мес</div>
+            </button>
+
+            <button type="button" data-months="6" data-price="490" data-label="6 месяцев" onclick="selectTariff(this)" class="tariff-card glass-panel rounded-2xl p-3 text-left flex flex-col justify-between min-h-[116px] transition">
+              <div class="text-[10px] font-bold text-pink-300 uppercase">ВЫГОДНО</div>
+              <div>
+                <div class="text-lg font-extrabold text-white">490 ₽</div>
+                <div class="text-[11px] text-slate-300 font-medium">6 месяцев</div>
+              </div>
+              <div class="text-[10px] text-emerald-400 font-semibold">~82 ₽ / мес</div>
+            </button>
+          </div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-3.5 space-y-1.5 text-xs">
+          <div class="flex items-center justify-between text-slate-300">
+            <span data-i18n="selectedPeriodLabel">Выбранный тариф:</span>
+            <span id="summaryTariffText" class="font-bold text-white">1 месяц — 80 ₽</span>
+          </div>
+          <div class="flex items-center justify-between text-slate-400">
+            <span data-i18n="supportedDevicesShort">Устройства:</span>
+            <span class="text-slate-200">Android, iOS, macOS, Windows</span>
+          </div>
+        </div>
+
+        <button id="payTariffBtn" onclick="handleTariffCheckout()" class="alive-cta w-full py-3.5 px-4 rounded-2xl text-sm font-extrabold text-white flex items-center justify-center gap-2">
+          <span data-i18n="connectAction">Подключить</span>
+          <span>•</span>
+          <span id="payTariffAmount">80 ₽</span>
+        </button>
+
+        <div class="glass-panel rounded-2xl p-4 space-y-2.5">
+          <h3 class="text-sm font-extrabold text-white">Почему AIVEL VPN?</h3>
+          <ul class="space-y-2 text-xs text-slate-300">
+            <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Стабильное высокоскоростное соединение</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Поддержка Android, iOS, macOS и Windows</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Пробный доступ 2 дня и 5 ГБ перед оплатой</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Интерфейс на 5 языках</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ==================== SUBSCREEN: ЛОКАЦИИ ==================== -->
+      <section id="subview-locations" class="view-animate hidden space-y-3.5">
+        <h2 class="text-xl font-extrabold text-white" data-i18n="locationsTitle">Локации</h2>
+        <p class="text-xs text-slate-400">Выберите оптимальный регион подключения в приложении AIVEL VPN.</p>
+
+        <div class="glass-panel rounded-2xl p-3.5 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-xl">⚡</span>
+            <div>
+              <div class="text-sm font-bold text-white">Автоматический регион</div>
+              <div class="text-xs text-slate-400">Подбирает самый быстрый сервер</div>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-[11px] font-bold">Авто</span>
+        </div>
+
+        <div class="space-y-2">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">Европа</div>
+          <div class="glass-panel rounded-2xl divide-y divide-white/10">
+            <div onclick="showToast('Выбран регион: Нидерланды (Амстердам)')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.03]">
+              <div class="flex items-center gap-3">
+                <span class="text-lg">🇳🇱</span>
+                <div>
+                  <div class="text-sm font-bold text-white">Амстердам</div>
+                  <div class="text-xs text-slate-400">Нидерланды</div>
+                </div>
+              </div>
+              <span class="text-xs font-semibold text-slate-400">NL</span>
+            </div>
+            <div onclick="showToast('Выбран регион: Германия (Франкфурт)')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.03]">
+              <div class="flex items-center gap-3">
+                <span class="text-lg">🇩🇪</span>
+                <div>
+                  <div class="text-sm font-bold text-white">Франкфурт</div>
+                  <div class="text-xs text-slate-400">Германия</div>
+                </div>
+              </div>
+              <span class="text-xs font-semibold text-slate-400">DE</span>
+            </div>
+            <div onclick="showToast('Выбран регион: Финляндия (Хельсинки)')" class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/[0.03]">
+              <div class="flex items-center gap-3">
+                <span class="text-lg">🇫🇮</span>
+                <div>
+                  <div class="text-sm font-bold text-white">Хельсинки</div>
+                  <div class="text-xs text-slate-400">Финляндия</div>
+                </div>
+              </div>
+              <span class="text-xs font-semibold text-slate-400">FI</span>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="navigateTab('install')" class="cta-gradient w-full py-3 rounded-2xl text-xs font-extrabold text-white">
           К установке →
         </button>
-      </div>
-    </section>
+      </section>
 
-    <!-- ПОТРЕБЛЕНИЕ ТРАФИКА -->
-    <section id="page-traffic" class="page">
-      <div class="card">
-        <div class="row-between">
-          <h2 class="title-lg">Потребление трафика</h2>
-          <span class="badge beta">Бета</span>
+      <!-- ==================== SUBSCREEN: УСТРОЙСТВА ==================== -->
+      <section id="subview-devices" class="view-animate hidden space-y-4">
+        <h2 class="text-xl font-extrabold text-white" data-i18n="devicesTitle">Устройства</h2>
+
+        <div class="glass-panel rounded-2xl p-5 text-center space-y-2.5">
+          <div class="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 mx-auto flex items-center justify-center text-lg">
+            📱
+          </div>
+          <div id="devicesEmptyLabel" class="text-sm font-bold text-white">Нет подключённых устройств</div>
+          <p class="text-xs text-slate-400">Подключите Android, iOS, macOS или Windows на вкладке «Установить».</p>
+          <button onclick="navigateTab('install')" class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition">
+            + Подключить устройство
+          </button>
         </div>
 
-        <div class="seg-tabs">
-          <button class="seg-btn active" onclick="setTrafficPeriod(this, 'Текущий период')">Текущий период</button>
-          <button class="seg-btn" onclick="setTrafficPeriod(this, 'Прошлый период')">Прошлый период</button>
-        </div>
-
-        <div class="summary-panel">
-          <div class="micro-upper">ИЗРАСХОДОВАНО</div>
-          <div class="stat-num" style="margin-top:4px;">0 ГБ <span>из 5 ГБ</span></div>
-          <div class="sub-txt">Пробный лимит: 2 дня и 5 ГБ</div>
-        </div>
-
-        <div class="micro-upper" style="margin-top:14px;">ПО ДНЯМ</div>
-        <div class="loc-item" style="cursor:default;margin-top:6px;">
-          <span class="sub-txt">Сегодня</span>
-          <strong style="font-size:12px;">0.00 ГБ</strong>
-        </div>
-      </div>
-    </section>
-
-    <!-- РЕФЕРАЛКА -->
-    <section id="page-referral" class="page">
-      <div class="card">
-        <div class="row-between">
+        <div class="glass-panel rounded-2xl p-4 border border-rose-500/30 space-y-3">
+          <div class="text-[10px] font-extrabold uppercase tracking-wider text-rose-400">ОПАСНАЯ ЗОНА</div>
           <div>
-            <div class="micro-upper">БОНУСНАЯ ПРОГРАММА</div>
-            <h2 class="title-lg" style="margin-top:2px;">Бесплатный VPN</h2>
-            <p class="sub-txt">Приглашайте друзей и получайте бесплатные дни подписки</p>
+            <div class="text-sm font-bold text-white">Сброс подписки</div>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Сбрасывает активные подключения и обновляет конфигурацию. Срок действия сохраняется.
+            </p>
           </div>
-          <div class="ico-sq" style="width:42px;height:42px;font-size:20px;">🎁</div>
+          <button onclick="openResetModal()" class="w-full py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-xs font-bold text-rose-300 transition">
+            Сбросить подписку
+          </button>
+        </div>
+      </section>
+
+      <!-- ==================== SUBSCREEN: ПОТРЕБЛЕНИЕ ТРАФИКА ==================== -->
+      <section id="subview-traffic" class="view-animate hidden space-y-3.5">
+        <div class="flex items-center gap-2">
+          <h2 class="text-xl font-extrabold text-white" data-i18n="trafficUsage">Потребление трафика</h2>
+          <span class="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-200 text-[10px] font-bold">Бета</span>
         </div>
 
-        <div class="grid-2" style="margin-top:12px;margin-bottom:0;">
-          <div class="summary-panel">
-            <div class="micro-upper">ПРИГЛАШЕНО</div>
-            <div class="stat-num" style="font-size:18px;margin-top:4px;">0 <span>чел.</span></div>
-          </div>
-          <div class="summary-panel">
-            <div class="micro-upper">ПОЛУЧЕНО</div>
-            <div class="stat-num" style="font-size:18px;margin-top:4px;">+0 <span>дня</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row-between">
-          <span class="micro-upper">ВАША ССЫЛКА</span>
-          <div class="ref-toggle">
-            <button class="ref-tab active" data-ref="bot" onclick="setRefType('bot')">Бот</button>
-            <button class="ref-tab" data-ref="site" onclick="setRefType('site')">Сайт</button>
-          </div>
+        <div class="glass-panel rounded-2xl p-1 grid grid-cols-2 gap-1">
+          <button id="monthBtnCurrent" onclick="selectTrafficMonth('current')" class="py-2 rounded-xl bg-purple-600/45 text-xs font-bold text-white transition">
+            Текущий период
+          </button>
+          <button id="monthBtnPrev" onclick="selectTrafficMonth('prev')" class="py-2 rounded-xl text-xs font-semibold text-slate-400 transition">
+            Прошлый период
+          </button>
         </div>
 
-        <div class="link-box" id="refUrlValue">https://t.me/aivelvpn_bot?start=ref_1944225789</div>
-
-        <button class="btn-surface" style="margin-top:8px;" onclick="copyRefUrl()">📋 Копировать</button>
-        <button class="btn-gradient" onclick="shareRefUrl()">📤 Поделиться</button>
-      </div>
-
-      <div class="card">
-        <h3 class="title-md">Как это работает</h3>
-        <div class="loc-item" style="cursor:default;">
-          <span class="sub-txt"><strong style="color:var(--text);">1.</strong> Поделитесь ссылкой с другом</span>
-          <span class="sub-txt">Шаг 1</span>
-        </div>
-        <div class="loc-item" style="cursor:default;">
-          <span class="sub-txt"><strong style="color:var(--text);">2.</strong> Друг запускает бота и пробует VPN</span>
-          <span class="sub-txt">Шаг 2</span>
-        </div>
-        <div class="loc-item" style="cursor:default;">
-          <span class="sub-txt"><strong style="color:var(--text);">3.</strong> Вы получаете бонус к подписке</span>
-          <span class="badge ok">+7 дней</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3 class="title-md">Партнёрская программа</h3>
-        <p class="sub-txt">Приглашайте друзей и получайте +7 дней за каждого активного пользователя.</p>
-      </div>
-    </section>
-
-    <!-- ПРОФИЛЬ -->
-    <section id="page-profile" class="page">
-      <div class="card">
-        <div class="row-between" style="justify-content:flex-start;gap:12px;">
-          <div class="avatar" id="profAvatar">AV</div>
-          <div>
-            <div class="title-lg" style="font-size:15px;" id="profUsername">@aivel_user</div>
-            <div class="sub-txt"><span id="profIdNum">1944225789</span> <span style="cursor:pointer;" onclick="copyUserId()">📋</span></div>
-          </div>
+        <div id="trafficSkeleton" class="hidden space-y-3">
+          <div class="glass-panel rounded-2xl p-5 h-28 animate-pulse bg-white/5"></div>
+          <div class="glass-panel rounded-2xl p-5 h-24 animate-pulse bg-white/5"></div>
         </div>
 
-        <div class="summary-panel" style="margin-top:12px;">
-          <div class="row-between">
-            <span class="micro-upper">ПОДПИСКА</span>
-            <span class="badge ok" id="profStatusTag">● Активна</span>
-          </div>
-          <div class="title-lg" style="margin-top:4px;" id="profPlanTitle">Пробный активен</div>
-          <div class="grid-2" style="margin-top:10px;margin-bottom:10px;">
-            <div>
-              <div class="sub-txt">Срок действия</div>
-              <strong style="font-size:13px;" id="profDaysText">2 дня</strong>
+        <div id="trafficContent" class="space-y-3">
+          <div class="glass-panel rounded-2xl p-4 space-y-2">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">ИЗРАСХОДОВАНО</div>
+            <div class="flex items-baseline gap-1.5">
+              <span id="trafficSpentVal" class="text-2xl font-extrabold text-white">0 ГБ</span>
+              <span class="text-xs text-slate-400">из <span id="trafficScreenLimit">5</span> ГБ</span>
             </div>
+            <div class="text-xs text-slate-400">Пробный лимит: 2 дня и 5 ГБ</div>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-4 space-y-1.5">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">ПО ДНЯМ</div>
+            <p class="text-xs text-slate-400">Статистика появится после первых подключений к серверу.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SUBSCREEN: ПОМОЩЬ ==================== -->
+      <section id="subview-help" class="view-animate hidden space-y-3.5">
+        <h2 class="text-xl font-extrabold text-white" data-i18n="helpTitle">Помощь</h2>
+        <div class="glass-panel rounded-2xl p-4 space-y-2 text-xs text-slate-300">
+          <div class="font-bold text-white text-sm">Частые вопросы по AIVEL VPN</div>
+          <p>• Пробный период даёт 2 дня и 5 ГБ для проверки скорости и стабильности.</p>
+          <p>• Доступные тарифы: 1 месяц — 80 ₽, 3 месяца — 190 ₽, 6 месяцев — 490 ₽.</p>
+          <p>• Поддерживаемые платформы: Android, iOS, macOS и Windows.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- ==================== BOTTOM NAVIGATION BAR (4 TABS) ==================== -->
+    <nav id="miniAppBottomNav" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] z-30 px-3 pb-3 pt-2 bg-gradient-to-t from-[#07050f] via-[#07050f]/95 to-transparent">
+      <div class="glass-panel rounded-2xl p-1.5 grid grid-cols-4 gap-1">
+        <button data-tab="home" onclick="navigateTab('home')" class="nav-tab-btn py-2 px-1 rounded-xl bg-purple-500/20 text-white flex flex-col items-center gap-1 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z" />
+          </svg>
+          <span class="text-[10px] font-bold" data-i18n="navHome">Главная</span>
+        </button>
+
+        <button data-tab="install" onclick="navigateTab('install')" class="nav-tab-btn py-2 px-1 rounded-xl text-slate-400 hover:text-slate-200 flex flex-col items-center gap-1 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+          </svg>
+          <span class="text-[10px] font-semibold" data-i18n="navInstall">Установить</span>
+        </button>
+
+        <button data-tab="referral" onclick="navigateTab('referral')" class="nav-tab-btn py-2 px-1 rounded-xl text-slate-400 hover:text-slate-200 flex flex-col items-center gap-1 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+          <span class="text-[10px] font-semibold" data-i18n="navReferral">Рефералка</span>
+        </button>
+
+        <button data-tab="profile" onclick="navigateTab('profile')" class="nav-tab-btn py-2 px-1 rounded-xl text-slate-400 hover:text-slate-200 flex flex-col items-center gap-1 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span class="text-[10px] font-semibold" data-i18n="navProfile">Профиль</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ==================== HELP BOTTOM SHEET MODAL ==================== -->
+    <div id="helpModal" class="hidden fixed inset-0 z-40 max-w-[440px] mx-auto bg-black/70 backdrop-blur-sm flex items-end">
+      <div class="w-full bg-[#130d24] border-t border-purple-400/30 rounded-t-3xl p-5 space-y-3.5 view-animate">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-extrabold text-white" data-i18n="helpTitle">Помощь</h3>
+          <button onclick="closeHelpSheet()" class="w-8 h-8 rounded-full bg-white/10 text-slate-300 flex items-center justify-center">✕</button>
+        </div>
+
+        <button onclick="closeHelpSheet(); openSubscreen('help');" class="w-full glass-panel glass-interactive rounded-2xl p-3.5 flex items-center justify-between text-left">
+          <div class="flex items-center gap-3">
+            <span class="text-lg">📖</span>
             <div>
-              <div class="sub-txt">Трафик</div>
-              <strong style="font-size:13px;">0 ГБ из 5 ГБ</strong>
+              <div class="text-sm font-bold text-white" data-i18n="instructions">Инструкции</div>
+              <div class="text-xs text-slate-400" data-i18n="instructionsSub">Гайды по настройке на устройствах</div>
             </div>
           </div>
-          <button class="btn-gradient" style="margin-top:0;" onclick="openPage('tariffs')" id="lbl_prof_extend">Продлить</button>
-        </div>
-      </div>
+          <span class="text-slate-400">↗</span>
+        </button>
 
-      <div class="card">
-        <div class="menu-row" onclick="openPage('traffic')">
-          <div>
-            <div class="title-md">Потребление трафика</div>
-            <div class="sub-txt">По дням и серверам</div>
+        <button onclick="closeHelpSheet(); showToast('Открытие чата поддержки AIVEL VPN');" class="w-full glass-panel glass-interactive rounded-2xl p-3.5 flex items-center justify-between text-left">
+          <div class="flex items-center gap-3">
+            <span class="text-lg">💬</span>
+            <div>
+              <div class="text-sm font-bold text-white" data-i18n="supportChat">Чат поддержки</div>
+              <div class="text-xs text-slate-400">С 10:00 до 22:00 МСК</div>
+            </div>
           </div>
-          <span style="color:var(--muted);">›</span>
-        </div>
-        <div class="menu-row" onclick="openPage('install')">
-          <div>
-            <div class="title-md">Устройства</div>
-            <div class="sub-txt">0 подключено</div>
-          </div>
-          <span style="color:var(--muted);">›</span>
-        </div>
-        <div class="menu-row" onclick="openPage('locations')">
-          <div>
-            <div class="title-md">Локации</div>
-            <div class="sub-txt">Страны и города</div>
-          </div>
-          <span style="color:var(--muted);">›</span>
-        </div>
+          <span class="text-slate-400">↗</span>
+        </button>
       </div>
+    </div>
 
-      <div class="card">
-        <div class="title-md">Язык / Тил / Забон</div>
-        <div class="lang-row" style="margin-top:10px;">
-          <button class="lang-pill active" data-lang="RU" onclick="setLang('RU')">RU</button>
-          <button class="lang-pill" data-lang="UZ" onclick="setLang('UZ')">UZ</button>
-          <button class="lang-pill" data-lang="TJ" onclick="setLang('TJ')">TJ</button>
-          <button class="lang-pill" data-lang="KG" onclick="setLang('KG')">KG</button>
-          <button class="lang-pill" data-lang="KZ" onclick="setLang('KZ')">KZ</button>
+    <!-- ==================== RESET SUBSCRIPTION MODAL ==================== -->
+    <div id="resetModal" class="hidden fixed inset-0 z-40 max-w-[440px] mx-auto bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full bg-[#130d24] border border-rose-500/40 rounded-3xl p-5 space-y-3.5 view-animate">
+        <h3 class="text-base font-extrabold text-white">Сбросить подписку?</h3>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Отключает VPN на всех устройствах и обновляет конфигурацию. Оставшиеся дни подписки сохраняются.
+        </p>
+        <div class="grid grid-cols-2 gap-2.5 pt-1">
+          <button onclick="closeResetModal()" class="py-2.5 rounded-xl bg-white/10 text-xs font-bold text-white">Отмена</button>
+          <button onclick="confirmSubscriptionReset()" class="py-2.5 rounded-xl bg-rose-600 text-xs font-bold text-white">Сбросить</button>
         </div>
-        <div class="sub-txt" style="margin-top:10px;" id="lbl_lang_selected">Выбран язык: Русский</div>
       </div>
+    </div>
 
-      <div class="card">
-        <div class="menu-row" onclick="openBot()">
-          <span class="title-md">Сообщество AIVEL VPN</span>
-          <span style="color:var(--muted);">›</span>
+    <!-- ==================== USER AGREEMENT MODAL ==================== -->
+    <div id="agreementModal" class="hidden fixed inset-0 z-40 max-w-[440px] mx-auto bg-black/75 backdrop-blur-sm flex items-end">
+      <div class="w-full bg-[#130d24] border-t border-purple-400/30 rounded-t-3xl p-5 space-y-3 view-animate max-h-[80dvh] overflow-y-auto">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-extrabold text-white">Пользовательское соглашение</h3>
+          <button onclick="closeAgreementModal()" class="w-8 h-8 rounded-full bg-white/10 text-slate-300 flex items-center justify-center">✕</button>
         </div>
-        <div class="menu-row" onclick="showToast('Пользовательское соглашение AIVEL VPN')">
-          <span class="title-md">Пользовательское соглашение</span>
-          <span style="color:var(--muted);">›</span>
-        </div>
-        <div class="menu-row" onclick="openPage('install')">
-          <span class="title-md">Помощь</span>
-          <span style="color:var(--muted);">›</span>
-        </div>
-        <div class="menu-row" onclick="openSupport()">
-          <span class="title-md">Поддержка</span>
-          <span style="color:var(--muted);">›</span>
-        </div>
-        <div class="menu-row" onclick="toggleAccessibleTheme()">
-          <div>
-            <div class="title-md">Версия для слабовидящих</div>
-            <div class="sub-txt">Светлый фон, без анимаций</div>
-          </div>
-          <span class="badge" id="visionBadge">Выкл</span>
-        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Сервис <strong>AIVEL VPN</strong> предоставляет защищённый доступ к сети для устройств Android, iOS, macOS и Windows.
+        </p>
+        <ul class="text-xs text-slate-400 space-y-1.5 list-disc pl-4">
+          <li>Пробный период: 2 дня и 5 ГБ трафика (активируется один раз на аккаунт).</li>
+          <li>Тарифы: 1 месяц — 80 ₽, 3 месяца — 190 ₽, 6 месяцев — 490 ₽.</li>
+          <li>Соблюдайте законы вашей страны при использовании сети.</li>
+        </ul>
+        <button onclick="closeAgreementModal()" class="cta-gradient w-full py-3 rounded-2xl text-xs font-bold text-white">
+          Понятно
+        </button>
       </div>
-    </section>
+    </div>
+
+    <!-- ==================== TOAST ==================== -->
+    <div id="toastBox" class="hidden fixed bottom-24 left-1/2 -translate-x-1/2 z-50 max-w-[380px] w-[90%] px-4 py-2.5 rounded-2xl bg-[#1e1636] border border-purple-400/40 text-xs font-semibold text-white text-center shadow-xl">
+      <span id="toastMessage"></span>
+    </div>
   </div>
 
-  <nav class="dock">
-    <button class="dock-btn active" data-dock="home" onclick="openPage('home')">
-      <span style="font-size:16px;">🏠</span><span id="dock_home">Главная</span>
-    </button>
-    <button class="dock-btn" data-dock="install" onclick="openPage('install')">
-      <span style="font-size:16px;">⬇️</span><span id="dock_inst">Установить</span>
-    </button>
-    <button class="dock-btn" data-dock="referral" onclick="openPage('referral')">
-      <span style="font-size:16px;">🔗</span><span id="dock_ref">Рефералка</span>
-    </button>
-    <button class="dock-btn" data-dock="profile" onclick="openPage('profile')">
-      <span style="font-size:16px;">👤</span><span id="dock_prof">Профиль</span>
-    </button>
-  </nav>
-
-  <div class="toast" id="toast"></div>
-
   <script>
-    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-    }
+    const appState = {
+      shellMode: 'miniapp',
+      activeTab: 'home',
+      selectedPlatform: 'Android',
+      selectedMonths: 1,
+      selectedPrice: 80,
+      selectedPlanName: '1 месяц',
+      connectedCount: 0,
+      trialActivated: false,
+      trialDays: 2,
+      trialTrafficGb: 5,
+      lang: 'ru',
+      theme: 'dark',
+      lowVision: false
+    };
 
-    let currentLang = "RU";
-    let trialActive = false;
-    let currentDays = 2;
-    let userId = "1944225789";
-    let selectedDevice = "Android";
-    let refKind = "bot";
-    let chosenTariff = { plan: "1 месяц", days: 30, price: 80 };
-
-    const LANGS = {
-      RU: {
-        langName: "Русский", bot: "Чат-бот", sup: "Поддержка",
-        trialTitle: "AIVEL VPN • Пробный доступ", trialSub: "2 дня и 5 ГБ бесплатно перед покупкой",
-        avail: "Доступно", activeTag: "Активен",
-        trialBtn: "⚡ Активировать 2 дня бесплатно",
-        trialDone: "✅ Пробный период активен (2 дня / 5 ГБ)",
-        trialAlready: "Пробный период (2 дня / 5 ГБ) уже активирован!",
-        buy: "Купить/Продлить", mysub: "Моя подписка", daysWord: "дня",
-        period: "пробный период", extend: "Продлить", limit: "пробный лимит",
-        increase: "Увеличить", osSub: "Пара шагов — и VPN настроен", connect: "Подключить →",
-        loc: "Локации", locSub: "Страны и города", dev: "Устройства", devSub: "Что подключено",
-        stat: "Статистика", statSub: "Потребление ГБ", inv: "Пригласить", invSub: "+7 дней за друга",
-        news: "Последние новости", dHome: "Главная", dInst: "Установить", dRef: "Рефералка", dProf: "Профиль"
+    const translations = {
+      ru: {
+        langLabel: 'Русский',
+        back: 'Назад',
+        support: 'Поддержка',
+        addEmail: 'Добавьте email',
+        addEmailHint: 'Для восстановления доступа к аккаунту',
+        daysWord: 'дня',
+        trialLabel: 'пробный период',
+        renewBtn: 'Продлить',
+        increaseBtn: 'Увеличить',
+        trafficPeriod: 'пробный лимит',
+        twoStepsHint: 'Пара шагов — и VPN настроен',
+        connectBtn: 'Подключить',
+        locationsTitle: 'Локации',
+        locationsSub: 'Страны и города',
+        devicesTitle: 'Устройства',
+        devicesSub: 'Что подключено',
+        statsTitle: 'Статистика',
+        statsSub: 'Потребление ГБ',
+        inviteTitle: 'Пригласить',
+        inviteSub: '+7 дней за друга',
+        latestNews: 'Последние новости',
+        channelLink: 'Канал',
+        chooseDevice: 'Выберите устройство',
+        chooseDeviceSub: 'На какое устройство подключаем AIVEL VPN?',
+        continueBtn: 'Продолжить',
+        setupSub: 'Скачайте клиент и добавьте профиль AIVEL VPN',
+        step1App: 'Скачайте приложение',
+        step2Config: 'Подключите конфиг',
+        autoConfigHint: 'Настройки профиля подставятся автоматически после нажатия кнопки подключения.',
+        connectNow: 'Подключиться',
+        setupDoneBtn: 'Готово, VPN настроен',
+        otherDevice: 'Выбрать другое устройство',
+        bonusProgram: 'БОНУСНАЯ ПРОГРАММА',
+        freeVpnTitle: 'Бесплатный VPN',
+        refSubtitle: 'Приглашайте друзей и получайте бесплатные дни подписки',
+        invitedLabel: 'ПРИГЛАШЕНО',
+        peopleShort: 'чел.',
+        earnedLabel: 'ПОЛУЧЕНО',
+        yourLink: 'ВАША ССЫЛКА',
+        linkBot: 'Бот',
+        linkSite: 'Сайт',
+        copyBtn: 'Копировать',
+        shareBtn: 'Поделиться',
+        howItWorks: 'Как это работает',
+        step1Ref: 'Поделитесь ссылкой',
+        step1RefDesc: 'Отправьте другу вашу реферальную ссылку AIVEL VPN',
+        step2Ref: 'Друг запускает VPN',
+        step2RefDesc: 'Активирует пробный доступ или подключает тариф',
+        step3Ref: 'Вы получаете +7 дней',
+        step3RefDesc: 'Бонусные дни начисляются на ваш аккаунт',
+        partnerProgram: 'Партнёрская программа',
+        partnerDesc: 'Приглашайте авторов и получайте процент с оплат тарифов',
+        profileTitle: 'Профиль',
+        subscriptionLabel: 'ПОДПИСКА',
+        activeStatus: '● Активна',
+        expiresIn: 'Срок действия',
+        trafficLabel: 'Трафик',
+        trafficUsage: 'Потребление трафика',
+        trafficUsageSub: 'По дням и серверам',
+        languageLabel: 'Язык / Тил / Забон',
+        helpTitle: 'Помощь',
+        lowVisionTitle: 'Версия для слабовидящих',
+        lowVisionSub: 'Светлый фон, без анимаций',
+        renewSubscription: 'Продление подписки',
+        choosePeriod: 'Выберите период',
+        selectedPeriodLabel: 'Выбранный тариф:',
+        supportedDevicesShort: 'Устройства:',
+        connectAction: 'Подключить',
+        instructions: 'Инструкции',
+        instructionsSub: 'Гайды по настройке на устройствах',
+        supportChat: 'Чат поддержки',
+        navHome: 'Главная',
+        navInstall: 'Установить',
+        navReferral: 'Рефералка',
+        navProfile: 'Профиль'
       },
-      UZ: {
-        langName: "O'zbekcha", bot: "Chat-bot", sup: "Yordam",
-        trialTitle: "AIVEL VPN • Sinov davri", trialSub: "Xarid qilishdan oldin 2 kun va 5 GB bepul",
-        avail: "Mavjud", activeTag: "Faol",
-        trialBtn: "⚡ 2 kunni bepul faollashtirish",
-        trialDone: "✅ Sinov davri faol (2 kun / 5 GB)",
-        trialAlready: "Sinov davri (2 kun / 5 GB) allaqachon faollashtirilgan!",
-        buy: "Sotib olish / Uzaytirish", mysub: "Obunam", daysWord: "kun",
-        period: "sinov muddati", extend: "Uzaytirish", limit: "sinov limiti",
-        increase: "Oshirish", osSub: "Ikki qadam — va VPN tayyor", connect: "Ulash →",
-        loc: "Lokatsiyalar", locSub: "Davlatlar va shaharlar", dev: "Qurilmalar", devSub: "Ulangan qurilmalar",
-        stat: "Statistika", statSub: "GB sarfi", inv: "Taklif qilish", invSub: "Do'st uchun +7 kun",
-        news: "So'nggi yangiliklar", dHome: "Asosiy", dInst: "O'rnatish", dRef: "Referal", dProf: "Profil"
+      uz: {
+        langLabel: 'Oʻzbekcha',
+        back: 'Orqaga',
+        support: 'Yordam',
+        addEmail: 'Email qoʻshing',
+        addEmailHint: 'Hisobga kirishni tiklash uchun',
+        daysWord: 'kun',
+        trialLabel: 'sinov muddati',
+        renewBtn: 'Uzaytirish',
+        increaseBtn: 'Oshirish',
+        trafficPeriod: 'sinov limiti',
+        twoStepsHint: 'Ikki qadam — va VPN tayyor',
+        connectBtn: 'Ulash',
+        locationsTitle: 'Lokatsiyalar',
+        locationsSub: 'Davlatlar va shaharlar',
+        devicesTitle: 'Qurilmalar',
+        devicesSub: 'Ulangan qurilmalar',
+        statsTitle: 'Statistika',
+        statsSub: 'GB sarfi',
+        inviteTitle: 'Taklif qilish',
+        inviteSub: 'Doʻst uchun +7 kun',
+        latestNews: 'Soʻnggi yangiliklar',
+        channelLink: 'Kanal',
+        chooseDevice: 'Qurilmani tanlang',
+        chooseDeviceSub: 'Qaysi qurilmaga AIVEL VPN ulaymiz?',
+        continueBtn: 'Davom etish',
+        setupSub: 'Ilovani yuklab oling va AIVEL VPN profilini qoʻshing',
+        step1App: 'Ilovani yuklab oling',
+        step2Config: 'Konfiguratsiyani ulang',
+        autoConfigHint: 'Ulash tugmasi bosilgach sozlamalar avtomatik qoʻllanadi.',
+        connectNow: 'Ulash',
+        setupDoneBtn: 'Tayyor, VPN sozlandi',
+        otherDevice: 'Boshqa qurilmani tanlash',
+        bonusProgram: 'BONUS DASTURI',
+        freeVpnTitle: 'Bepul VPN',
+        refSubtitle: 'Doʻstlarni taklif qiling va bepul kunlar oling',
+        invitedLabel: 'TAKLIF ETILDI',
+        peopleShort: 'kishi',
+        earnedLabel: 'OLINDI',
+        yourLink: 'SIZNING HAVOLANGIZ',
+        linkBot: 'Bot',
+        linkSite: 'Sayt',
+        copyBtn: 'Nusxalash',
+        shareBtn: 'Ulashish',
+        howItWorks: 'Qanday ishlaydi',
+        step1Ref: 'Havolani ulashing',
+        step1RefDesc: 'Doʻstingizga AIVEL VPN referal havolasini yuboring',
+        step2Ref: 'Doʻst VPN ni ishga tushiradi',
+        step2RefDesc: 'Sinov davri yoki tarifni faollashtiradi',
+        step3Ref: 'Siz +7 kun olasiz',
+        step3RefDesc: 'Bonus kunlar hisobingizga qoʻshiladi',
+        partnerProgram: 'Hamkorlik dasturi',
+        partnerDesc: 'Toʻlovlardan foiz oling',
+        profileTitle: 'Profil',
+        subscriptionLabel: 'OBUNA',
+        activeStatus: '● Faol',
+        expiresIn: 'Amal qilish muddati',
+        trafficLabel: 'Trafik',
+        trafficUsage: 'Trafik sarfi',
+        trafficUsageSub: 'Kunlar va serverlar boʻyicha',
+        languageLabel: 'Til',
+        helpTitle: 'Yordam',
+        lowVisionTitle: 'Koʻrish qobiliyati pastlar uchun',
+        lowVisionSub: 'Yorqin fon, animatsiyasiz',
+        renewSubscription: 'Obunani uzaytirish',
+        choosePeriod: 'Muddatni tanlang',
+        selectedPeriodLabel: 'Tanlangan tarif:',
+        supportedDevicesShort: 'Qurilmalar:',
+        connectAction: 'Ulash',
+        instructions: 'Yoʻriqnomalar',
+        instructionsSub: 'Qurilmalarda sozlash qoʻllanmasi',
+        supportChat: 'Qoʻllab-quvvatlash chati',
+        navHome: 'Asosiy',
+        navInstall: 'Oʻrnatish',
+        navReferral: 'Referal',
+        navProfile: 'Profil'
       },
-      TJ: {
-        langName: "Тоҷикӣ", bot: "Чат-бот", sup: "Дастгирӣ",
-        trialTitle: "AIVEL VPN • Дастрасии озмоишӣ", trialSub: "2 рӯз ва 5 ГБ ройгон пеш аз харид",
-        avail: "Дастрас", activeTag: "Фаъол",
-        trialBtn: "⚡ 2 рӯзро ройгон фаъол кунед",
-        trialDone: "✅ Давраи озмоишӣ фаъол аст (2 рӯз / 5 ГБ)",
-        trialAlready: "Давраи озмоишӣ (2 рӯз / 5 ГБ) аллакай фаъол шудааст!",
-        buy: "Хариди / Тамдид", mysub: "Обунаи ман", daysWord: "рӯз",
-        period: "мӯҳлати санҷиш", extend: "Тамдид кардан", limit: "лимити санҷиш",
-        increase: "Зиёд кардан", osSub: "Ду қадам — ва VPN омода аст", connect: "Пайваст шудан →",
-        loc: "Ҷойгиршавӣ", locSub: "Кишварҳо ва шаҳрҳо", dev: "Дастгоҳҳо", devSub: "Дастгоҳҳои пайваст",
-        stat: "Омор", statSub: "Истифодаи ГБ", inv: "Даъват кардан", invSub: "+7 рӯз барои дӯст",
-        news: "Навигариҳои охирин", dHome: "Асосӣ", dInst: "Насб кардан", dRef: "Реферал", dProf: "Профил"
+      tg: {
+        langLabel: 'Тоҷикӣ',
+        back: 'Бозгашт',
+        support: 'Дастгирӣ',
+        addEmail: 'Email илова кунед',
+        addEmailHint: 'Барои барқарор кардани дастрасӣ',
+        daysWord: 'рӯз',
+        trialLabel: 'мӯҳлати санҷишӣ',
+        renewBtn: 'Тамдид кардан',
+        increaseBtn: 'Зиёд кардан',
+        trafficPeriod: 'лимити санҷишӣ',
+        twoStepsHint: 'Ду қадам — ва VPN омода аст',
+        connectBtn: 'Пайваст шудан',
+        locationsTitle: 'Ҷойгиршавӣ',
+        locationsSub: 'Кишварҳо ва шаҳрҳо',
+        devicesTitle: 'Дастгоҳҳо',
+        devicesSub: 'Дастгоҳҳои пайвастшуда',
+        statsTitle: 'Омор',
+        statsSub: 'Истифодаи ГБ',
+        inviteTitle: 'Даъват кардан',
+        inviteSub: '+7 рӯз барои дӯст',
+        latestNews: 'Навигариҳои охирин',
+        channelLink: 'Канал',
+        chooseDevice: 'Дастгоҳро интихоб кунед',
+        chooseDeviceSub: 'Ба кадом дастгоҳ AIVEL VPN пайваст кунем?',
+        continueBtn: 'Идома додан',
+        setupSub: 'Барномаро насб кунед ва профили AIVEL VPN-ро илова намоед',
+        step1App: 'Барномаро боргирӣ кунед',
+        step2Config: 'Конфигуратсияро пайваст кунед',
+        autoConfigHint: 'Танзимот пас аз пахши тугма худкор илова мешаванд.',
+        connectNow: 'Пайваст шудан',
+        setupDoneBtn: 'Тайёр, VPN танзим шуд',
+        otherDevice: 'Интихоби дастгоҳи дигар',
+        bonusProgram: 'БАРНОМАИ БОНУСӢ',
+        freeVpnTitle: 'VPN-и ройгон',
+        refSubtitle: 'Дӯстонро даъват кунед ва рӯзҳои ройгон гиред',
+        invitedLabel: 'ДАЪВАТШУДА',
+        peopleShort: 'нафар',
+        earnedLabel: 'ГИРИФТАШУДА',
+        yourLink: 'ИСТИНОДИ ШУМО',
+        linkBot: 'Бот',
+        linkSite: 'Сайт',
+        copyBtn: 'Нусхабардорӣ',
+        shareBtn: 'Мубодила',
+        howItWorks: 'Чӣ гуна кор мекунад',
+        step1Ref: 'Истинодро фиристед',
+        step1RefDesc: 'Истиноди рефералии AIVEL VPN-ро ба дӯстатон диҳед',
+        step2Ref: 'Дӯст VPN-ро фаъол мекунад',
+        step2RefDesc: 'Дастрасии санҷишӣ ё тарофаро мегирад',
+        step3Ref: 'Шумо +7 рӯз мегиред',
+        step3RefDesc: 'Рӯзҳои бонусӣ ба ҳисоби шумо мегузаранд',
+        partnerProgram: 'Барномаи шарикӣ',
+        partnerDesc: 'Аз пардохтҳо фоиз гиред',
+        profileTitle: 'Профил',
+        subscriptionLabel: 'ОБУНА',
+        activeStatus: '● Фаъол',
+        expiresIn: 'Мӯҳлати амал',
+        trafficLabel: 'Трафик',
+        trafficUsage: 'Истифодаи трафик',
+        trafficUsageSub: 'Аз рӯи рӯзҳо ва серверҳо',
+        languageLabel: 'Забон',
+        helpTitle: 'Кӯмак',
+        lowVisionTitle: 'Барои биноиши суст',
+        lowVisionSub: 'Заминаи равшан, бе аниматсия',
+        renewSubscription: 'Тамдиди обуна',
+        choosePeriod: 'Мӯҳлатро интихоб кунед',
+        selectedPeriodLabel: 'Тарофаи интихобшуда:',
+        supportedDevicesShort: 'Дастгоҳҳо:',
+        connectAction: 'Пайваст кардан',
+        instructions: 'Дастурамалҳо',
+        instructionsSub: 'Роҳнамои танзим дар дастгоҳҳо',
+        supportChat: 'Чати дастгирӣ',
+        navHome: 'Асосӣ',
+        navInstall: 'Насб',
+        navReferral: 'Реферал',
+        navProfile: 'Профил'
       },
-      KZ: {
-        langName: "Қазақша", bot: "Чат-бот", sup: "Қолдау",
-        trialTitle: "AIVEL VPN • Сынақ кезеңі", trialSub: "Сатып алмас бұрын 2 күн және 5 ГБ тегін",
-        avail: "Қолжетімді", activeTag: "Белсенді",
-        trialBtn: "⚡ 2 күнді тегін қосу",
-        trialDone: "✅ Сынақ кезеңі қосулы (2 күн / 5 ГБ)",
-        trialAlready: "Сынақ кезеңі (2 күн / 5 ГБ) әлдеқашан қосылған!",
-        buy: "Сатып алу / Ұзарту", mysub: "Жазылымым", daysWord: "күн",
-        period: "сынақ мерзімі", extend: "Ұзарту", limit: "сынақ лимиті",
-        increase: "Көбейту", osSub: "Екі қадам — VPN дайын", connect: "Қосылу →",
-        loc: "Локациялар", locSub: "Елдер мен қалалар", dev: "Құрылғылар", devSub: "Қосылған құрылғылар",
-        stat: "Статистика", statSub: "ГБ жұмсау", inv: "Шақыру", invSub: "Дос үшін +7 күн",
-        news: "Соңғы жаңалықтар", dHome: "Басты", dInst: "Орнату", dRef: "Реферал", dProf: "Профиль"
+      ky: {
+        langLabel: 'Кыргызча',
+        back: 'Артка',
+        support: 'Колдоо',
+        addEmail: 'Email кошуңуз',
+        addEmailHint: 'Аккаунтка кирүүнү калыбына келтирүү үчүн',
+        daysWord: 'күн',
+        trialLabel: 'сыноо мөөнөтү',
+        renewBtn: 'Узартуу',
+        increaseBtn: 'Көбөйтүү',
+        trafficPeriod: 'сыноо лимити',
+        twoStepsHint: 'Эки кадам — VPN даяр',
+        connectBtn: 'Туташуу',
+        locationsTitle: 'Локациялар',
+        locationsSub: 'Өлкөлөр жана шаарлар',
+        devicesTitle: 'Түзмөктөр',
+        devicesSub: 'Туташкан түзмөктөр',
+        statsTitle: 'Статистика',
+        statsSub: 'ГБ сарпталышы',
+        inviteTitle: 'Чакыруу',
+        inviteSub: 'Дос үчүн +7 күн',
+        latestNews: 'Акыркы жаңылыктар',
+        channelLink: 'Канал',
+        chooseDevice: 'Түзмөктү тандаңыз',
+        chooseDeviceSub: 'Кайсы түзмөккө AIVEL VPN туташтырабыз?',
+        continueBtn: 'Улантуу',
+        setupSub: 'Кардарды орнотуп, AIVEL VPN профилин кошуңуз',
+        step1App: 'Тиркемени жүктөп алыңыз',
+        step2Config: 'Конфигди туташтырыңыз',
+        autoConfigHint: 'Туташуу баскычын басканда жөндөөлөр автоматтык кошулат.',
+        connectNow: 'Туташуу',
+        setupDoneBtn: 'Даяр, VPN жөндөлдү',
+        otherDevice: 'Башка түзмөктү тандоо',
+        bonusProgram: 'БОНУС ПРОГРАММАСЫ',
+        freeVpnTitle: 'Акысыз VPN',
+        refSubtitle: 'Досторду чакырып, бекер күндөрдү алыңыз',
+        invitedLabel: 'ЧАКЫРЫЛДЫ',
+        peopleShort: 'адам',
+        earnedLabel: 'АЛЫНДЫ',
+        yourLink: 'СИЗДИН ШИЛТЕМЕ',
+        linkBot: 'Бот',
+        linkSite: 'Сайт',
+        copyBtn: 'Көчүрүү',
+        shareBtn: 'Бөлүшүү',
+        howItWorks: 'Кантип иштейт',
+        step1Ref: 'Шилтемени бөлүшүңүз',
+        step1RefDesc: 'Досуңузга AIVEL VPN рефералдык шилтемесин жөнөтүңүз',
+        step2Ref: 'Дос VPN иштетет',
+        step2RefDesc: 'Сыноо мөөнөтүн же тарифти активдештирет',
+        step3Ref: 'Сиз +7 күн аласыз',
+        step3RefDesc: 'Бонус күндөр аккаунтуңузга түшөт',
+        partnerProgram: 'Өнөктөштүк программа',
+        partnerDesc: 'Төлөмдөрдөн пайыз алыңыз',
+        profileTitle: 'Профиль',
+        subscriptionLabel: 'ЖАЗЫЛУУ',
+        activeStatus: '● Активдүү',
+        expiresIn: 'Жарактуулук мөөнөтү',
+        trafficLabel: 'Трафик',
+        trafficUsage: 'Трафик сарпталышы',
+        trafficUsageSub: 'Күндөр жана серверлер боюнча',
+        languageLabel: 'Тил',
+        helpTitle: 'Жардам',
+        lowVisionTitle: 'Көрүүсү начарлар үчүн',
+        lowVisionSub: 'Жарык фон, анимациясыз',
+        renewSubscription: 'Жазылууну узартуу',
+        choosePeriod: 'Мөөнөттү тандаңыз',
+        selectedPeriodLabel: 'Тандалган тариф:',
+        supportedDevicesShort: 'Түзмөктөр:',
+        connectAction: 'Туташтыруу',
+        instructions: 'Нускамалар',
+        instructionsSub: 'Түзмөктөрдү жөндөө боюнча колдонмо',
+        supportChat: 'Колдоо чаты',
+        navHome: 'Башкы',
+        navInstall: 'Орнотуу',
+        navReferral: 'Реферал',
+        navProfile: 'Профиль'
       },
-      KG: {
-        langName: "Кыргызча", bot: "Чат-бот", sup: "Колдоо",
-        trialTitle: "AIVEL VPN • Сыноо мөөнөтү", trialSub: "Сатып алардан мурун 2 күн жана 5 ГБ акысыз",
-        avail: "Жеткиликтүү", activeTag: "Активдүү",
-        trialBtn: "⚡ 2 күндү бекер жандыруу",
-        trialDone: "✅ Сыноо мөөнөтү жандырылды (2 күн / 5 ГБ)",
-        trialAlready: "Сыноо мөөнөтү (2 күн / 5 ГБ) мурунтан эле жандырылган!",
-        buy: "Сатып алуу / Узартуу", mysub: "Жазылуум", daysWord: "күн",
-        period: "сыноо мөөнөтү", extend: "Узартуу", limit: "сыноо лимити",
-        increase: "Көбөйтүү", osSub: "Эки кадам — VPN даяр", connect: "Туташуу →",
-        loc: "Локациялар", locSub: "Өлкөлөр жана шаарлар", dev: "Түзмөктөр", devSub: "Туташкан түзмөктөр",
-        stat: "Статистика", statSub: "ГБ сарпталышы", inv: "Чакыруу", invSub: "Дос үчүн +7 күн",
-        news: "Акыркы жаңылыктар", dHome: "Башкы", dInst: "Орнотуу", dRef: "Реферал", dProf: "Профиль"
+      kk: {
+        langLabel: 'Қазақша',
+        back: 'Артқа',
+        support: 'Қолдау',
+        addEmail: 'Email қосыңыз',
+        addEmailHint: 'Аккаунтқа қол жеткізуді қалпына келтіру үшін',
+        daysWord: 'күн',
+        trialLabel: 'сынақ кезеңі',
+        renewBtn: 'Ұзарту',
+        increaseBtn: 'Арттыру',
+        trafficPeriod: 'сынақ лимиті',
+        twoStepsHint: 'Екі қадам — VPN дайын',
+        connectBtn: 'Қосу',
+        locationsTitle: 'Локациялар',
+        locationsSub: 'Елдер мен қалалар',
+        devicesTitle: 'Құрылғылар',
+        devicesSub: 'Қосылған құрылғылар',
+        statsTitle: 'Статистика',
+        statsSub: 'ГБ шығыны',
+        inviteTitle: 'Шақыру',
+        inviteSub: 'Дос үшін +7 күн',
+        latestNews: 'Соңғы жаңалықтар',
+        channelLink: 'Арна',
+        chooseDevice: 'Құрылғыны таңдаңыз',
+        chooseDeviceSub: 'Қай құрылғыға AIVEL VPN қосамыз?',
+        continueBtn: 'Жалғастыру',
+        setupSub: 'Клиентті орнатып, AIVEL VPN профилін қосыңыз',
+        step1App: 'Қосымшаны жүктеп алыңыз',
+        step2Config: 'Конфигті қосыңыз',
+        autoConfigHint: 'Қосу түймесін басқанда баптаулар автоматты түрде қолданылады.',
+        connectNow: 'Қосу',
+        setupDoneBtn: 'Дайын, VPN бапталды',
+        otherDevice: 'Басқа құрылғыны таңдау',
+        bonusProgram: 'БОНУСТЫҚ БАҒДАРЛАМА',
+        freeVpnTitle: 'Тегін VPN',
+        refSubtitle: 'Достарды шақырып, тегін күндер алыңыз',
+        invitedLabel: 'ШАҚЫРЫЛДЫ',
+        peopleShort: 'адам',
+        earnedLabel: 'АЛЫНДЫ',
+        yourLink: 'СІЗДІҢ СІЛТЕМЕҢІЗ',
+        linkBot: 'Бот',
+        linkSite: 'Сайт',
+        copyBtn: 'Көшіру',
+        shareBtn: 'Бөлісу',
+        howItWorks: 'Қалай жұмыс істейді',
+        step1Ref: 'Сілтемемен бөлісіңіз',
+        step1RefDesc: 'Досыңызға AIVEL VPN рефералдық сілтемесін жіберіңіз',
+        step2Ref: 'Дос VPN іске қосады',
+        step2RefDesc: 'Сынақ кезеңін немесе тарифті белсендіреді',
+        step3Ref: 'Сіз +7 күн аласыз',
+        step3RefDesc: 'Бонус күндер аккаунтыңызға есептеледі',
+        partnerProgram: 'Серіктестік бағдарлама',
+        partnerDesc: 'Төлемдерден пайыз алыңыз',
+        profileTitle: 'Профиль',
+        subscriptionLabel: 'ЖАЗЫЛЫМ',
+        activeStatus: '● Белсенді',
+        expiresIn: 'Қолданылу мерзімі',
+        trafficLabel: 'Трафик',
+        trafficUsage: 'Трафик шығыны',
+        trafficUsageSub: 'Күндер мен серверлер бойынша',
+        languageLabel: 'Тіл',
+        helpTitle: 'Көмек',
+        lowVisionTitle: 'Көру қабілеті төмендерге арналған',
+        lowVisionSub: 'Ашық фон, анимациясыз',
+        renewSubscription: 'Жазылымды ұзарту',
+        choosePeriod: 'Кезеңді таңдаңыз',
+        selectedPeriodLabel: 'Таңдалған тариф:',
+        supportedDevicesShort: 'Құрылғылар:',
+        connectAction: 'Қосу',
+        instructions: 'Нұсқаулықтар',
+        instructionsSub: 'Құрылғыларды баптау нұсқаулығы',
+        supportChat: 'Қолдау чаты',
+        navHome: 'Басты',
+        navInstall: 'Орнату',
+        navReferral: 'Реферал',
+        navProfile: 'Профиль'
       }
     };
 
-    function showToast(msg) {
-      const el = document.getElementById("toast");
-      el.textContent = msg;
-      el.classList.add("show");
-      clearTimeout(window.__toastTimer);
-      window.__toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
+    (function initTelegramWebApp() {
+      try {
+        if (window.Telegram && window.Telegram.WebApp) {
+          const tg = window.Telegram.WebApp;
+          tg.ready();
+          tg.expand();
+          const user = tg.initDataUnsafe && tg.initDataUnsafe.user;
+          if (user) {
+            const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
+            document.getElementById('tgUserName').textContent = user.username ? `@${user.username}` : (fullName || 'Пользователь');
+            if (user.id) document.getElementById('tgUserId').textContent = String(user.id);
+          }
+        }
+      } catch (err) {
+        console.warn('Telegram WebApp SDK fallback mode:', err);
+      }
+    })();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('splashScreen');
+        if (splash) {
+          splash.style.opacity = '0';
+          setTimeout(() => splash.classList.add('hidden'), 300);
+        }
+      }, 650);
+    });
+
+    function toggleShellMode(targetMode) {
+      const nextMode = targetMode || (appState.shellMode === 'miniapp' ? 'bot' : 'miniapp');
+      appState.shellMode = nextMode;
+
+      const botView = document.getElementById('botChatView');
+      const mainView = document.getElementById('miniAppMain');
+      const bottomNav = document.getElementById('miniAppBottomNav');
+      const topHeader = document.getElementById('miniAppHeader');
+      const modeBtn = document.getElementById('modeToggleBtn');
+
+      if (nextMode === 'bot') {
+        botView.classList.remove('hidden');
+        mainView.classList.add('hidden');
+        bottomNav.classList.add('hidden');
+        topHeader.classList.add('hidden');
+      } else {
+        botView.classList.add('hidden');
+        mainView.classList.remove('hidden');
+        bottomNav.classList.remove('hidden');
+        topHeader.classList.remove('hidden');
+        if (modeBtn) modeBtn.textContent = '💬 Чат-бот';
+      }
     }
 
-    function openPage(name) {
-      const pages = ["home", "tariffs", "install", "locations", "traffic", "referral", "profile"];
-      const target = pages.includes(name) ? name : "home";
-      document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
-      document.getElementById("page-" + target).classList.add("active");
+    function toggleColorTheme() {
+      appState.theme = appState.theme === 'dark' ? 'light' : 'dark';
+      const isLight = appState.theme === 'light';
+      document.body.classList.toggle('light-theme', isLight);
 
-      const dockMap = { home: "home", install: "install", referral: "referral", profile: "profile" };
-      document.querySelectorAll(".dock-btn").forEach((btn) => {
-        btn.classList.toggle("active", btn.dataset.dock === dockMap[target]);
-      });
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const themeBtn = document.getElementById('themeToggleBtn');
+      const moonIcon = document.getElementById('themeMoonIcon');
+      if (themeBtn && moonIcon) {
+        if (isLight) {
+          themeBtn.classList.add('bg-purple-600/20', 'border-purple-500/50');
+          moonIcon.innerHTML = '<circle cx="12" cy="12" r="5"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+        } else {
+          themeBtn.classList.remove('bg-purple-600/20', 'border-purple-500/50');
+          moonIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+        }
+      }
+
+      showToast(isLight ? 'Светлая тема' : 'Тёмная тема');
     }
 
-    function setLang(code) {
-      currentLang = LANGS[code] ? code : "RU";
-      document.querySelectorAll(".lang-pill").forEach((b) => {
-        b.classList.toggle("active", b.dataset.lang === currentLang);
-      });
-      const d = LANGS[currentLang];
-      document.getElementById("lbl_bot").textContent = d.bot;
-      document.getElementById("lbl_sup").textContent = d.sup;
-      document.getElementById("lbl_trial_title").textContent = d.trialTitle;
-      document.getElementById("lbl_trial_sub").textContent = d.trialSub;
-      document.getElementById("trialBadge").textContent = trialActive ? d.activeTag : d.avail;
-      document.getElementById("trialBtn").textContent = trialActive ? d.trialDone : d.trialBtn;
-      document.getElementById("lbl_buy").textContent = d.buy;
-      document.getElementById("lbl_mysub").textContent = d.mysub;
-      document.getElementById("homeDays").innerHTML = `${currentDays} <span id="lbl_days">${d.daysWord}</span>`;
-      document.getElementById("lbl_period").textContent = d.period;
-      document.getElementById("lbl_extend").textContent = d.extend;
-      document.getElementById("lbl_limit").textContent = d.limit;
-      document.getElementById("lbl_increase").textContent = d.increase;
-      document.getElementById("lbl_os_sub").textContent = d.osSub;
-      document.getElementById("lbl_connect").textContent = d.connect;
-      document.getElementById("lbl_loc").textContent = d.loc;
-      document.getElementById("lbl_loc_sub").textContent = d.locSub;
-      document.getElementById("lbl_dev").textContent = d.dev;
-      document.getElementById("lbl_dev_sub").textContent = d.devSub;
-      document.getElementById("lbl_stat").textContent = d.stat;
-      document.getElementById("lbl_stat_sub").textContent = d.statSub;
-      document.getElementById("lbl_inv").textContent = d.inv;
-      document.getElementById("lbl_inv_sub").textContent = d.invSub;
-      document.getElementById("lbl_news").textContent = d.news;
-      document.getElementById("dock_home").textContent = d.dHome;
-      document.getElementById("dock_inst").textContent = d.dInst;
-      document.getElementById("dock_ref").textContent = d.dRef;
-      document.getElementById("dock_prof").textContent = d.dProf;
-      document.getElementById("lbl_lang_selected").textContent = `Выбран язык: ${d.langName}`;
+    function openMiniAppAt(target) {
+      toggleShellMode('miniapp');
+      if (target === 'tariffs') {
+        openSubscreen('tariffs');
+      } else {
+        navigateTab(target || 'home');
+      }
     }
 
-    function activateTrial() {
-      const d = LANGS[currentLang];
-      if (trialActive) {
-        showToast(d.trialAlready);
+    function triggerBotMainScreen() {
+      const logBox = document.getElementById('botUserActionLog');
+      const bubble = document.getElementById('botUserActionBubble');
+      if (logBox && bubble) {
+        bubble.textContent = 'Главный экран 🏠';
+        logBox.classList.remove('hidden');
+      }
+      const stream = document.getElementById('botMessagesStream');
+      if (stream) stream.scrollTop = 0;
+      showToast('Возврат на главный экран бота');
+    }
+
+    function activateTrialInstant() {
+      if (appState.trialActivated) {
+        showToast('Пробный период (2 дня / 5 ГБ) уже активирован!');
         return;
       }
-      trialActive = true;
-      currentDays = 2;
-      document.getElementById("trialBadge").textContent = d.activeTag;
-      document.getElementById("trialBadge").classList.add("ok");
-      document.getElementById("trialBtn").textContent = d.trialDone;
-      document.getElementById("trialBtn").classList.add("done");
-      document.getElementById("profPlanTitle").textContent = "Пробный активен";
-      document.getElementById("profDaysText").textContent = "2 дня";
-      showToast("Пробный период (2 дня / 5 ГБ) активирован!");
-      if (tg) {
-        try { tg.sendData(JSON.stringify({ action: "activate_trial", lang: currentLang })); } catch (e) {}
+
+      appState.trialActivated = true;
+      appState.trialDays = 2;
+      appState.trialTrafficGb = 5;
+
+      document.getElementById('homeDaysVal').textContent = '2';
+      document.getElementById('homeTrafficVal').textContent = '5';
+      document.getElementById('profileDaysLeft').textContent = '2';
+      document.getElementById('profileTrafficMax').textContent = '5';
+      document.getElementById('trafficScreenLimit').textContent = '5';
+      document.getElementById('profilePlanName').textContent = 'Пробный активен';
+
+      const pill = document.getElementById('homeTrialPill');
+      if (pill) {
+        pill.textContent = 'Активирован';
+        pill.className = 'px-2.5 py-1 rounded-full bg-emerald-500/25 border border-emerald-400/50 text-[10px] font-bold text-emerald-300';
       }
-    }
 
-    function selectTariff(el) {
-      document.querySelectorAll(".tariff-card").forEach((c) => c.classList.remove("selected"));
-      el.classList.add("selected");
-      chosenTariff = {
-        plan: el.dataset.plan,
-        days: Number(el.dataset.days),
-        price: Number(el.dataset.price)
-      };
-      document.getElementById("tariffSummaryText").textContent = `${chosenTariff.plan} — ${chosenTariff.price} ₽`;
-      document.getElementById("tariffPayBtn").textContent = `Подключить · ${chosenTariff.price} ₽ →`;
-    }
+      const hint = document.getElementById('homeTrialStatusHint');
+      if (hint) hint.textContent = 'Активно: 2 дня и 0 / 5 ГБ использовано';
 
-    function confirmTariff() {
-      currentDays = chosenTariff.days;
-      document.getElementById("homeDays").innerHTML = `${currentDays} <span>${LANGS[currentLang].daysWord}</span>`;
-      document.getElementById("profPlanTitle").textContent = chosenTariff.plan;
-      document.getElementById("profDaysText").textContent = `${currentDays} дней`;
-      showToast(`Выбран тариф AIVEL VPN: ${chosenTariff.plan} за ${chosenTariff.price} ₽`);
-      if (tg) {
-        try {
-          tg.sendData(JSON.stringify({
-            action: "select_tariff",
-            plan: chosenTariff.plan,
-            price: chosenTariff.price,
-            lang: currentLang
-          }));
-        } catch (e) {}
+      const homeBtnLabel = document.getElementById('homeTrialBtnLabel');
+      if (homeBtnLabel) homeBtnLabel.textContent = 'Пробный период активен (2 дня / 5 ГБ)';
+
+      const botBtnLabel = document.getElementById('botTrialBtnLabel');
+      if (botBtnLabel) botBtnLabel.textContent = '2 дня бесплатно уже активированы ✓';
+
+      const botStatus = document.getElementById('botSubStatusText');
+      if (botStatus) {
+        botStatus.textContent = 'Пробный активирован (2 дня · 0 / 5 ГБ)';
+        botStatus.className = 'text-emerald-400';
       }
+
+      const logBox = document.getElementById('botUserActionLog');
+      const bubble = document.getElementById('botUserActionBubble');
+      if (logBox && bubble) {
+        bubble.textContent = 'Активировать 2 дня бесплатно';
+        logBox.classList.remove('hidden');
+      }
+
+      showToast('Активировано 2 дня и 5 ГБ бесплатно в AIVEL VPN!');
     }
 
-    function setHomeOs(os) {
-      document.querySelectorAll(".os-pill").forEach((b) => {
-        b.classList.toggle("active", b.dataset.os === os);
+    function hideAllViews() {
+      ['view-home', 'view-install', 'view-referral', 'view-profile',
+       'subview-tariffs', 'subview-locations', 'subview-devices', 'subview-traffic', 'subview-help'
+      ].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
       });
-      document.getElementById("homeOsTitle").textContent = os;
-      selectedDevice = os;
-      syncDeviceSelection(os);
     }
 
-    function pickDevice(el) {
-      selectedDevice = el.dataset.dev;
-      syncDeviceSelection(selectedDevice);
+    function setHeaderForSubscreen(isSubscreen) {
+      document.getElementById('headerBrand').classList.toggle('hidden', isSubscreen);
+      document.getElementById('headerBackBtn').classList.toggle('hidden', !isSubscreen);
     }
 
-    function syncDeviceSelection(dev) {
-      document.querySelectorAll(".device-box").forEach((box) => {
-        box.classList.toggle("selected", box.dataset.dev === dev);
+    function navigateTab(tabName) {
+      if (appState.shellMode === 'bot') {
+        toggleShellMode('miniapp');
+      }
+      appState.activeTab = tabName;
+      hideAllViews();
+      setHeaderForSubscreen(false);
+
+      const targetView = document.getElementById(`view-${tabName}`);
+      if (targetView) targetView.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        const isActive = btn.getAttribute('data-tab') === tabName;
+        btn.classList.toggle('bg-purple-500/20', isActive);
+        btn.classList.toggle('text-white', isActive);
+        btn.classList.toggle('text-slate-400', !isActive);
       });
-      document.getElementById("chosenDeviceTitle").textContent = dev;
-      document.getElementById("installKeyBox").textContent = `vless://aivel-vpn-${dev.toLowerCase()}@aivel.example:443`;
+
+      if (tabName === 'install') backToInstallStep1();
+      document.getElementById('miniAppMain').scrollTop = 0;
     }
 
-    function goInstallStep(step) {
-      const s1 = document.getElementById("installStep1");
-      const s2 = document.getElementById("installStep2");
-      const d1 = document.getElementById("dotStep1");
-      const d2 = document.getElementById("dotStep2");
-      if (step === 2) {
-        s1.style.display = "none";
-        s2.style.display = "block";
-        d1.classList.remove("active");
-        d2.classList.add("active");
-      } else {
-        s1.style.display = "block";
-        s2.style.display = "none";
-        d1.classList.add("active");
-        d2.classList.remove("active");
+    function openSubscreen(subName) {
+      if (appState.shellMode === 'bot') {
+        toggleShellMode('miniapp');
       }
-    }
+      hideAllViews();
+      setHeaderForSubscreen(true);
 
-    function chooseLocation(label, el) {
-      document.querySelectorAll("#page-locations .loc-item").forEach((item) => item.classList.remove("active"));
-      el.classList.add("active");
-      showToast(`Выбран регион: ${label}`);
-    }
+      const subView = document.getElementById(`subview-${subName}`);
+      if (subView) subView.classList.remove('hidden');
 
-    function setTrafficPeriod(btn, label) {
-      document.querySelectorAll(".seg-btn").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      showToast(label);
-    }
-
-    function setRefType(kind) {
-      refKind = kind;
-      document.querySelectorAll(".ref-tab").forEach((t) => {
-        t.classList.toggle("active", t.dataset.ref === kind);
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.classList.remove('bg-purple-500/20', 'text-white');
+        btn.classList.add('text-slate-400');
       });
-      document.getElementById("refUrlValue").textContent = kind === "bot"
-        ? `https://t.me/aivelvpn_bot?start=ref_${userId}`
-        : `https://westbynuil-svg.github.io/aivel-miniapp/?ref=${userId}`;
+
+      document.getElementById('miniAppMain').scrollTop = 0;
     }
 
-    function copyString(val, msg) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(val).then(() => showToast(msg)).catch(() => showToast(msg));
+    function goBackFromSubscreen() {
+      navigateTab(appState.activeTab || 'home');
+    }
+
+    function selectQuickDevice(platform) {
+      appState.selectedPlatform = platform;
+      document.getElementById('quickDeviceTitle').textContent = platform;
+      document.querySelectorAll('.quick-dev-btn').forEach(btn => {
+        const active = btn.getAttribute('data-quick-dev') === platform;
+        btn.className = active
+          ? 'quick-dev-btn px-2.5 py-1.5 rounded-xl bg-purple-500/25 border border-purple-400/50 text-xs font-bold text-white'
+          : 'quick-dev-btn px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-slate-300';
+      });
+      syncPlatformCards();
+    }
+
+    function selectPlatform(platform) {
+      appState.selectedPlatform = platform;
+      document.getElementById('quickDeviceTitle').textContent = platform;
+      syncPlatformCards();
+    }
+
+    function syncPlatformCards() {
+      document.querySelectorAll('.platform-card').forEach(card => {
+        const active = card.getAttribute('data-platform') === appState.selectedPlatform;
+        card.classList.toggle('card-active', active);
+      });
+    }
+
+    function goToInstallStep2() {
+      document.getElementById('installStep1').classList.add('hidden');
+      document.getElementById('installStep2').classList.remove('hidden');
+      document.getElementById('setupHeading').textContent = `${appState.selectedPlatform} — 2 простых шага`;
+
+      const c1 = document.getElementById('stepCircle1');
+      c1.textContent = '✓';
+      c1.className = 'w-8 h-8 rounded-full bg-emerald-500/25 border border-emerald-400/60 flex items-center justify-center text-xs font-extrabold text-emerald-300';
+
+      const c2 = document.getElementById('stepCircle2');
+      c2.className = 'w-8 h-8 rounded-full cta-gradient flex items-center justify-center text-xs font-extrabold text-white';
+      document.getElementById('stepLineFill').style.width = '100%';
+    }
+
+    function backToInstallStep1() {
+      document.getElementById('installStep2').classList.add('hidden');
+      document.getElementById('installStep1').classList.remove('hidden');
+
+      const c1 = document.getElementById('stepCircle1');
+      c1.textContent = '1';
+      c1.className = 'w-8 h-8 rounded-full cta-gradient flex items-center justify-center text-xs font-extrabold text-white';
+
+      const c2 = document.getElementById('stepCircle2');
+      c2.className = 'w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-xs font-bold text-slate-400';
+      document.getElementById('stepLineFill').style.width = '0%';
+    }
+
+    function switchClientApp(clientName) {
+      const tabHapp = document.getElementById('clientTabHapp');
+      const tabV2 = document.getElementById('clientTabV2Ray');
+      const btnText = document.getElementById('downloadClientBtnText');
+      const hint = document.getElementById('clientAppHint');
+
+      if (clientName === 'Happ') {
+        tabHapp.className = 'py-2 rounded-xl bg-purple-600/40 border border-purple-400/50 text-xs font-bold text-white transition';
+        tabV2.className = 'py-2 rounded-xl text-xs font-semibold text-slate-400 transition';
+        btnText.textContent = 'Скачать Happ';
+        hint.textContent = 'Установите клиент Happ для выбранной платформы, чтобы подключить профиль AIVEL VPN.';
       } else {
-        showToast(msg);
+        tabV2.className = 'py-2 rounded-xl bg-purple-600/40 border border-purple-400/50 text-xs font-bold text-white transition';
+        tabHapp.className = 'py-2 rounded-xl text-xs font-semibold text-slate-400 transition';
+        btnText.textContent = 'Скачать v2RayTun';
+        hint.textContent = 'Установите клиент v2RayTun и перейдите ко второму шагу для добавления профиля.';
       }
     }
 
-    function copyInstallKey() {
-      copyString(document.getElementById("installKeyBox").textContent.trim(), "Ключ скопирован");
+    function connectConfigAction() {
+      appState.connectedCount += 1;
+      updateConnectedCountUI();
+      showToast(`Профиль AIVEL VPN подготовлен для ${appState.selectedPlatform}`);
     }
 
-    function copyRefUrl() {
-      copyString(document.getElementById("refUrlValue").textContent.trim(), "Ссылка скопирована");
+    function markSetupDone() {
+      if (appState.connectedCount === 0) appState.connectedCount = 1;
+      updateConnectedCountUI();
+      showToast(`${appState.selectedPlatform} готов к работе в AIVEL VPN`);
+      navigateTab('home');
     }
 
-    function shareRefUrl() {
-      const link = document.getElementById("refUrlValue").textContent.trim();
-      if (tg && tg.openTelegramLink) {
-        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("AIVEL VPN — 2 дня и 5 ГБ бесплатно")}`);
+    function updateConnectedCountUI() {
+      const text = `${appState.connectedCount} подключено`;
+      document.getElementById('profileDevicesCountText').textContent = text;
+      document.getElementById('devicesEmptyLabel').textContent = appState.connectedCount > 0
+        ? `Подключено устройств: ${appState.connectedCount}`
+        : 'Нет подключённых устройств';
+    }
+
+    function selectTariff(cardEl) {
+      document.querySelectorAll('.tariff-card').forEach(c => c.classList.remove('card-active'));
+      cardEl.classList.add('card-active');
+
+      const months = Number(cardEl.getAttribute('data-months') || 1);
+      const price = Number(cardEl.getAttribute('data-price') || 80);
+      const label = cardEl.getAttribute('data-label') || '1 месяц';
+
+      appState.selectedMonths = months;
+      appState.selectedPrice = price;
+      appState.selectedPlanName = label;
+
+      document.getElementById('summaryTariffText').textContent = `${label} — ${price} ₽`;
+      document.getElementById('payTariffAmount').textContent = `${price} ₽`;
+    }
+
+    function handleTariffCheckout() {
+      showToast(`Выбран тариф AIVEL VPN: ${appState.selectedPlanName} за ${appState.selectedPrice} ₽`);
+    }
+
+    function switchRefLinkType(type) {
+      const botBtn = document.getElementById('refTypeBot');
+      const siteBtn = document.getElementById('refTypeSite');
+      const input = document.getElementById('refLinkInput');
+
+      if (type === 'bot') {
+        botBtn.className = 'px-2.5 py-1 rounded-md bg-purple-600/50 text-[11px] font-bold text-white transition';
+        siteBtn.className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-400 transition';
+        input.value = 'https://t.me/aivelvpn_bot?start=ref_user';
       } else {
-        copyString(link, "Ссылка готова для отправки");
+        siteBtn.className = 'px-2.5 py-1 rounded-md bg-purple-600/50 text-[11px] font-bold text-white transition';
+        botBtn.className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-400 transition';
+        input.value = 'https://aivelvpn.example/?ref=user';
       }
+    }
+
+    function copyTextToClipboard(text) {
+      try {
+        const temp = document.createElement('textarea');
+        temp.value = text;
+        temp.setAttribute('readonly', '');
+        temp.style.position = 'absolute';
+        temp.style.left = '-9999px';
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        return true;
+      } catch (err) {
+        console.warn('Copy fallback:', err);
+        return false;
+      }
+    }
+
+    function copyRefLink() {
+      const val = document.getElementById('refLinkInput').value;
+      copyTextToClipboard(val);
+      showToast('Реферальная ссылка скопирована');
+    }
+
+    function shareReferralLink() {
+      const val = document.getElementById('refLinkInput').value;
+      try {
+        if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openTelegramLink === 'function') {
+          const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(val)}&text=${encodeURIComponent('Попробуй AIVEL VPN')}`;
+          window.Telegram.WebApp.openTelegramLink(shareUrl);
+          return;
+        }
+      } catch (err) {
+        console.warn('Share fallback:', err);
+      }
+      copyTextToClipboard(val);
+      showToast('Ссылка готова к отправке: ' + val);
     }
 
     function copyUserId() {
-      copyString(userId, "ID скопирован");
+      const idText = document.getElementById('tgUserId').textContent;
+      copyTextToClipboard(idText);
+      showToast('ID скопирован: ' + idText);
     }
 
-    function toggleAccessibleTheme() {
-      const enabled = document.body.classList.toggle("accessible-light");
-      document.getElementById("visionBadge").textContent = enabled ? "Вкл" : "Выкл";
-      showToast(enabled ? "Версия для слабовидящих включена" : "Обычная тема включена");
-    }
+    function selectTrafficMonth(period) {
+      const btnCur = document.getElementById('monthBtnCurrent');
+      const btnPrev = document.getElementById('monthBtnPrev');
+      const skel = document.getElementById('trafficSkeleton');
+      const content = document.getElementById('trafficContent');
 
-    function openBot() {
-      const url = "https://t.me/aivelvpn_bot";
-      tg && tg.openTelegramLink ? tg.openTelegramLink(url) : window.open(url, "_blank");
-    }
-
-    function openSupport() {
-      const url = "https://t.me/AIVEL_SUPPORT";
-      tg && tg.openTelegramLink ? tg.openTelegramLink(url) : window.open(url, "_blank");
-    }
-
-    (function init() {
-      const u = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
-      if (u) {
-        userId = String(u.id);
-        const nick = u.username ? `@${u.username}` : ([u.first_name, u.last_name].filter(Boolean).join(" ") || "@aivel_user");
-        const av = ((u.first_name || "A")[0] + (u.last_name || "V")[0]).toUpperCase();
-        document.getElementById("profAvatar").textContent = av;
-        document.getElementById("profUsername").textContent = nick;
-        document.getElementById("profIdNum").textContent = userId;
-        setRefType(refKind);
+      if (period === 'current') {
+        btnCur.className = 'py-2 rounded-xl bg-purple-600/45 text-xs font-bold text-white transition';
+        btnPrev.className = 'py-2 rounded-xl text-xs font-semibold text-slate-400 transition';
+      } else {
+        btnPrev.className = 'py-2 rounded-xl bg-purple-600/45 text-xs font-bold text-white transition';
+        btnCur.className = 'py-2 rounded-xl text-xs font-semibold text-slate-400 transition';
       }
 
-      const params = new URLSearchParams(window.location.search);
-      const startapp = params.get("startapp") || (tg && tg.initDataUnsafe ? tg.initDataUnsafe.start_param : "") || "home";
-      openPage(startapp);
-    })();
+      skel.classList.remove('hidden');
+      content.classList.add('hidden');
+
+      setTimeout(() => {
+        document.getElementById('trafficSpentVal').textContent = period === 'current' ? '0 ГБ' : '3.4 ГБ';
+        skel.classList.add('hidden');
+        content.classList.remove('hidden');
+      }, 260);
+    }
+
+    function openAgreementModal() { document.getElementById('agreementModal').classList.remove('hidden'); }
+    function closeAgreementModal() { document.getElementById('agreementModal').classList.add('hidden'); }
+
+    function openHelpSheet() { document.getElementById('helpModal').classList.remove('hidden'); }
+    function closeHelpSheet() { document.getElementById('helpModal').classList.add('hidden'); }
+
+    function openResetModal() { document.getElementById('resetModal').classList.remove('hidden'); }
+    function closeResetModal() { document.getElementById('resetModal').classList.add('hidden'); }
+    function confirmSubscriptionReset() {
+      appState.connectedCount = 0;
+      updateConnectedCountUI();
+      closeResetModal();
+      showToast('Подписка сброшена, конфигурация обновлена');
+    }
+
+    function toggleLowVision() {
+      appState.lowVision = !appState.lowVision;
+      document.body.classList.toggle('low-vision', appState.lowVision);
+
+      const toggleBtn = document.getElementById('lowVisionToggle');
+      const knob = document.getElementById('lowVisionKnob');
+      toggleBtn.setAttribute('aria-checked', String(appState.lowVision));
+
+      if (appState.lowVision) {
+        toggleBtn.classList.remove('bg-white/15');
+        toggleBtn.classList.add('bg-indigo-600');
+        knob.classList.remove('translate-x-0');
+        knob.classList.add('translate-x-5');
+      } else {
+        toggleBtn.classList.add('bg-white/15');
+        toggleBtn.classList.remove('bg-indigo-600');
+        knob.classList.add('translate-x-0');
+        knob.classList.remove('translate-x-5');
+      }
+    }
+
+    function setLanguage(langCode) {
+      const dict = translations[langCode];
+      if (!dict) return;
+      appState.lang = langCode;
+
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        const active = btn.getAttribute('data-lang') === langCode;
+        btn.className = active
+          ? 'lang-btn py-2 rounded-xl bg-purple-600/45 border border-purple-400/60 text-[11px] font-extrabold text-white'
+          : 'lang-btn py-2 rounded-xl bg-white/5 border border-white/10 text-[11px] font-semibold text-slate-300';
+      });
+
+      document.querySelectorAll('.flag-pill-btn').forEach(btn => {
+        const active = btn.getAttribute('data-flag-lang') === langCode;
+        btn.className = active
+          ? 'flag-pill-btn py-1.5 px-1 rounded-full bg-purple-600/45 border border-fuchsia-400/80 text-[11px] font-extrabold text-white flex items-center justify-center gap-1 shadow-sm transition'
+          : 'flag-pill-btn py-1.5 px-1 rounded-full glass-panel text-[11px] font-semibold text-slate-300 flex items-center justify-center gap-1 transition';
+      });
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      });
+
+      document.getElementById('activeLangName').textContent = `Выбран язык: ${dict.langLabel}`;
+    }
+
+    let toastTimer = null;
+    function showToast(message) {
+      const box = document.getElementById('toastBox');
+      const msg = document.getElementById('toastMessage');
+      msg.textContent = message;
+      box.classList.remove('hidden');
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        box.classList.add('hidden');
+      }, 2400);
+    }
   </script>
 </body>
 </html>
