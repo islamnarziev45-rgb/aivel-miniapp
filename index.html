@@ -1250,7 +1250,7 @@
         </p>
         <ul class="text-xs text-slate-400 space-y-1.5 list-disc pl-4">
           <li>Пробный период: 2 дня и 5 ГБ трафика (активируется один раз на аккаунт).</li>
-          <li>Тарифы: 1 месяц — 80 ₽, 3 месяца — 190 ₽, 6 месяцев — 490 ₽.</li>
+          <li>Тарифы: 1 месяц — 80 ₽, 3 месяца — 190 ₽, 6 месяцев — 390 ₽.</li>
           <li>Соблюдайте законы вашей страны при использовании сети.</li>
         </ul>
         <button onclick="closeAgreementModal()" class="cta-gradient w-full py-3 rounded-2xl text-xs font-bold text-white">
@@ -1730,9 +1730,12 @@
       }
       const param = tg.initDataUnsafe && tg.initDataUnsafe.start_param;
       const route = String(param || "").replace(/^ref_/, "");
-      if (["home", "install", "referral", "profile"].includes(route)) navigateTab(route);
+      if (["home", "install", "referral", "profile"].includes(route) || route.startsWith("ref_")) navigateTab(route.startsWith("ref_") ? "referral" : route);
       else if (route === "tariffs") openSubscreen("tariffs");
+      else if (route === "support" || route === "help") openSubscreen("help");
+      else if (route === "agreement") openAgreementModal();
       await refreshSubscriptionState(false);
+      if (route === "trial") await activateTrialInstant();
     }
 
     window.addEventListener("DOMContentLoaded", () => {
