@@ -1,8 +1,10 @@
 """AIVEL VPN Telegram entry bot. Business state lives in the Mini App backend."""
 
 import asyncio
+import json
 import os
 import re
+from urllib.request import Request, urlopen
 
 from aiogram import Bot, Dispatcher, F
 from collections import defaultdict
@@ -22,6 +24,7 @@ MINI_APP_URL = os.getenv(
     "MINI_APP_URL",
     "https://islamnarziev45-rgb.github.io/aivel-miniapp/",
 ).rstrip("/")
+AIVEL_API_URL = os.getenv("AIVEL_API_URL", "http://127.0.0.1:18080").rstrip("/")
 
 dp = Dispatcher()
 home_menu_message_ids: dict[int, list[int]] = defaultdict(list)
@@ -38,12 +41,13 @@ def web_app_button(text: str, screen: str, style: str | None = None) -> InlineKe
     return InlineKeyboardButton(**options)
 
 
-def inline_menu(referrer_id: str | None = None) -> InlineKeyboardMarkup:
+def inline_menu(referrer_id: str | None = None, show_trial: bool = True) -> InlineKeyboardMarkup:
     first_screen = f"ref_{referrer_id}" if referrer_id else "trial"
     first_title = "🎁 Принять приглашение · 2 дня" if referrer_id else "🎁 Бесплатный старт · 2 дня"
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [web_app_button(first_title, first_screen, "primary")],
+    rows = []
+    if referrer_id or show_trial:
+        rows.append([web_app_button(first_title, first_screen, "primary")])
+    rows.extend([
             [
                 web_app_button("💳 Купить / Продлить", "tariffs", "success"),
                 web_app_button("🔗 Моя подписка", "profile", "primary"),
@@ -53,8 +57,46 @@ def inline_menu(referrer_id: str | None = None) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="💬 Поддержка", url="https://t.me/aivel_support"),
                 web_app_button("📄 Соглашение", "agreement"),
             ],
-        ]
+        ])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def api_post(path: str, payload: dict) -> dict:
+    request = Request(
+        f"{AIVEL_API_URL}{path}",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json", "X-Aivel-Bot-Token": BOT_TOKEN},
+        method="POST",
     )
+    with urlopen(request, timeout=8) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+async def get_trial_available(telegram_id: int) -> bool:
+    try:
+        result = await asyncio.to_thread(
+            api_post, "/bot/trial-status", {"telegram_id": str(telegram_id)}
+        )
+        return result.get("trial_available") is True
+    except Exception as error:
+        print(f"Trial status lookup failed: {type(error).__name__}", flush=True)
+        return False
+
+
+async def register_menu(telegram_id: int, chat_id: int, message_id: int, markup: InlineKeyboardMarkup) -> None:
+    try:
+        await asyncio.to_thread(
+            api_post,
+            "/bot/register-menu",
+            {
+                "telegram_id": str(telegram_id),
+                "chat_id": str(chat_id),
+                "message_id": message_id,
+                "reply_markup": markup.model_dump(mode="json"),
+            },
+        )
+    except Exception as error:
+        print(f"Menu registration failed: {type(error).__name__}", flush=True)
 
 
 def persistent_menu() -> ReplyKeyboardMarkup:
@@ -88,20 +130,22 @@ async def show_home_menu(message: Message, referrer_id: str | None = None) -> No
         message,
         delete_request=(message.text or "").strip() == "Главный экран 🏠",
     )
+    show_trial = await get_trial_available(message.from_user.id)
     greeting = await message.answer(
         "🛡 <b>AIVEL VPN</b>\n\n"
-        + ("Вас пригласили в AIVEL VPN. Откройте приложение по кнопке ниже, чтобы приглашение засчиталось.\n\n" if referrer_id else "Откройте Mini App, чтобы активировать пробный период, управлять подпиской ")
-        + ("" if referrer_id else "и подключить устройство.\n\n")
+        + ("Вас пригласили в AIVEL VPN. Откройте приложение по кнопке ниже, чтобы приглашение засчиталось.\n\n" if referrer_id else ("Откройте Mini App, чтобы активировать пробный период, управлять подпиской и подключить устройство.\n\n" if show_trial else "Откройте Mini App, чтобы управлять подпиской и подключить устройство.\n\n"))
         + "Тарифы: 1 месяц — <b>80 ₽</b> · 3 месяца — <b>190 ₽</b> · "
         "6 месяцев — <b>390 ₽</b>.",
         parse_mode="HTML",
         reply_markup=persistent_menu(),
     )
+    markup = inline_menu(referrer_id, show_trial=show_trial)
     menu = await message.answer(
         "Выберите действие — кнопки ниже откроют нужный раздел:",
-        reply_markup=inline_menu(referrer_id),
+        reply_markup=markup,
     )
     home_menu_message_ids[message.chat.id] = [greeting.message_id, menu.message_id]
+    await register_menu(message.from_user.id, message.chat.id, menu.message_id, markup)
 
 
 @dp.message(CommandStart())
