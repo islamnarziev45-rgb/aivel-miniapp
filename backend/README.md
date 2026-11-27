@@ -15,7 +15,7 @@
 - `AIVEL_MINIAPP_ORIGIN` — точный HTTPS origin страницы Mini App, без пути
 - `AIVEL_BOT_TOKEN` — токен бота, только на сервере
 - `AIVEL_DB` — **абсолютный путь к текущей базе**; до cutover проверь прежнее значение и не создавай новую пустую БД
-- `AIVEL_MARZBAN_API_ORIGIN`, `AIVEL_MARZBAN_USERNAME`, `AIVEL_MARZBAN_PASSWORD`, `AIVEL_MARZBAN_INBOUND`, `AIVEL_SUBSCRIPTION_ORIGIN`
+- `AIVEL_MARZBAN_API` (or `AIVEL_MARZBAN_API_ORIGIN`), `AIVEL_MARZBAN_USER` (or `AIVEL_MARZBAN_USERNAME`), `AIVEL_MARZBAN_PASSWORD`, `AIVEL_MARZBAN_INBOUND`, `AIVEL_SUBSCRIPTION_ORIGIN`
 - `AIVEL_PLATEGA_MERCHANT_ID`, `AIVEL_PLATEGA_SECRET`
 - `AIVEL_PLATEGA_CALLBACK_PATH` — по умолчанию `/platega/callback`
 
