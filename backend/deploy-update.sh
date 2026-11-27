@@ -12,7 +12,7 @@ UNIT_FILE="/etc/systemd/system/${SERVICE}"
 
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
-for command in podman curl cp mkdir date grep sed head systemctl; do
+for command in podman curl cp mkdir date grep sed head seq sleep systemctl; do
   command -v "$command" >/dev/null || fail "Missing command: $command"
 done
 
@@ -26,7 +26,7 @@ podman container exists "$CONTAINER" || fail "Running API container $CONTAINER w
 podman inspect --format '{{.State.Running}}' "$CONTAINER" | grep -qx true || fail "API container is not running."
 
 for key in AIVEL_DB AIVEL_BOT_TOKEN AIVEL_MINIAPP_ORIGIN AIVEL_MARZBAN_API AIVEL_MARZBAN_USER AIVEL_MARZBAN_PASSWORD AIVEL_MARZBAN_INBOUND AIVEL_SUBSCRIPTION_ORIGIN AIVEL_PLATEGA_MERCHANT_ID AIVEL_PLATEGA_SECRET; do
-  grep -q "^\${key}=" "$ENV_FILE" || fail "Missing required environment variable: $key"
+  grep -q "^$key=" "$ENV_FILE" || fail "Missing required environment variable: $key"
 done
 grep -q '^AIVEL_DB=/data/orders.sqlite$' "$ENV_FILE" || fail "AIVEL_DB must remain /data/orders.sqlite."
 mounts="$(podman inspect --format '{{range .Mounts}}{{.Source}}:{{.Destination}} {{end}}' "$CONTAINER")"
