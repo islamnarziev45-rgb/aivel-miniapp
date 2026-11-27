@@ -29,23 +29,26 @@ def app_url(screen: str) -> str:
     return f"{MINI_APP_URL}/?startapp={screen}"
 
 
-def web_app_button(text: str, screen: str) -> InlineKeyboardButton:
-    return InlineKeyboardButton(text=text, web_app=WebAppInfo(url=app_url(screen)))
+def web_app_button(text: str, screen: str, style: str | None = None) -> InlineKeyboardButton:
+    options = {"text": text, "web_app": WebAppInfo(url=app_url(screen))}
+    if style:
+        options["style"] = style
+    return InlineKeyboardButton(**options)
 
 
 def inline_menu(referrer_id: str | None = None) -> InlineKeyboardMarkup:
     first_screen = f"ref_{referrer_id}" if referrer_id else "trial"
-    first_title = "🎁 Принять приглашение · 2 дня / 5 ГБ" if referrer_id else "🎁 Бесплатный старт · 2 дня / 5 ГБ"
+    first_title = "🎁 Принять приглашение · 2 дня" if referrer_id else "🎁 Бесплатный старт · 2 дня"
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [web_app_button(first_title, first_screen)],
+            [web_app_button(first_title, first_screen, "primary")],
             [
-                web_app_button("💳 Купить / Продлить", "tariffs"),
-                web_app_button("🔗 Моя подписка", "profile"),
+                web_app_button("💳 Купить / Продлить", "tariffs", "success"),
+                web_app_button("🔗 Моя подписка", "profile", "primary"),
             ],
-            [web_app_button("📲 Установить AIVEL VPN", "install")],
+            [web_app_button("📲 Подключить устройство", "install")],
             [
-                web_app_button("💬 Поддержка", "support"),
+                InlineKeyboardButton(text="💬 Поддержка", url="https://t.me/aivel_support"),
                 web_app_button("📄 Соглашение", "agreement"),
             ],
         ]
@@ -57,7 +60,7 @@ def persistent_menu() -> ReplyKeyboardMarkup:
         keyboard=[
             [
                 KeyboardButton(
-                    text="🚀 Открыть AIVEL VPN",
+                    text="Главный экран 🏠",
                     web_app=WebAppInfo(url=app_url("home")),
                 )
             ]
@@ -103,4 +106,3 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
-
