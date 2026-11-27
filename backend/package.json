@@ -1,0 +1,14 @@
+{
+  "name": "aivel-vpn-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check server.mjs && node --check source/subscriptions.mjs && node --check source/marzban.mjs && node --check source/platega.mjs"
+  }
+}
+
