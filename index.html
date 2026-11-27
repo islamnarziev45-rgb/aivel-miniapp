@@ -1226,7 +1226,7 @@
           <span class="text-slate-400">↗</span>
         </button>
 
-        <button onclick="closeHelpSheet(); showToast('Открытие чата поддержки AIVEL VPN');" class="w-full glass-panel glass-interactive rounded-2xl p-3.5 flex items-center justify-between text-left">
+        <button onclick="closeHelpSheet(); openSupportChat();" class="w-full glass-panel glass-interactive rounded-2xl p-3.5 flex items-center justify-between text-left">
           <div class="flex items-center gap-3">
             <span class="text-lg">💬</span>
             <div>
@@ -2115,6 +2115,14 @@
 
     function openHelpSheet() { document.getElementById('helpModal').classList.remove('hidden'); }
     function closeHelpSheet() { document.getElementById('helpModal').classList.add('hidden'); }
+    function openSupportChat() {
+      const url = 'https://t.me/aivel_support';
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(url);
+      } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    }
 
     function openResetModal() { document.getElementById('resetModal').classList.remove('hidden'); }
     function closeResetModal() { document.getElementById('resetModal').classList.add('hidden'); }
