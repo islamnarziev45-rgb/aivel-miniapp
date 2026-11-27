@@ -2,8 +2,10 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <!-- <<< MINI APP: viewport без зума, чтобы приложение выглядело как нативное внутри Telegram -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>AIVEL VPN</title>
+  <!-- <<< MINI APP: официальный скрипт Telegram, без него window.Telegram.WebApp не существует -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -536,7 +538,9 @@
         <div class="brand-name">AIVEL<br/>VPN</div>
       </div>
       <div class="top-actions">
+        <!-- <<< MINI APP: кнопка вызывает openBot() -> tg.openTelegramLink -->
         <button class="chip-btn primary" onclick="openBot()">💬 <span id="t_bot">Чат-бот</span></button>
+        <!-- <<< MINI APP: кнопка вызывает openSupport() -> tg.openTelegramLink -->
         <button class="chip-btn" onclick="openSupport()">🎧 <span id="t_sup">Поддержка</span></button>
         <button class="icon-circle" id="themeToggleBtn" onclick="toggleTheme()" title="Тема">🌙</button>
       </div>
@@ -561,6 +565,7 @@
           <span class="badge" id="trialBadge">Доступно</span>
         </div>
 
+        <!-- <<< MINI APP: activateTrial() отправляет данные боту через tg.sendData -->
         <button class="btn-grad" id="trialBtn" onclick="activateTrial()">⚡ Активировать 2 дня бесплатно</button>
 
         <div class="grid-2" style="margin-top:10px;margin-bottom:0;">
@@ -628,6 +633,7 @@
       <div class="card">
         <div class="row-between" style="margin-bottom:4px;">
           <h3 class="card-title" id="t_news">Последние новости</h3>
+          <!-- <<< MINI APP: openBot() -> tg.openTelegramLink -->
           <span class="chip-btn" onclick="openBot()">Канал ↗</span>
         </div>
         <div class="news-item">
@@ -690,6 +696,7 @@
           </div>
         </div>
 
+        <!-- <<< MINI APP: paySelected() отправляет выбранный тариф боту через tg.sendData -->
         <button class="btn-blue" style="width:100%;margin-top:12px;padding:12px;font-size:13px;" id="payActionBtn" onclick="paySelected()">
           Подключить · 80 ₽ →
         </button>
@@ -723,6 +730,7 @@
       <div class="card">
         <h2 class="card-title" style="font-size:16px;">Пригласить друзей</h2>
         <p class="card-sub">Получайте +7 дней за каждого приглашённого друга после активации доступа.</p>
+        <!-- <<< MINI APP: ссылка подставляется из tg.initDataUnsafe.user.id в init() -->
         <div class="sub-box" style="font-family:monospace;font-size:12px;word-break:break-all;" id="refLinkText">
           https://t.me/aivelvpn_bot?start=ref_1944225789
         </div>
@@ -734,6 +742,7 @@
     <section id="page-profile" class="page">
       <div class="card">
         <div class="profile-head">
+          <!-- <<< MINI APP: аватар, имя и ID подставляются из данных пользователя Telegram в init() -->
           <div class="avatar" id="profAvatar">AV</div>
           <div>
             <div class="card-title" style="font-size:15px;" id="profName">@aivel_user</div>
@@ -805,10 +814,11 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    // <<< MINI APP: получаем объект Telegram WebApp (если страница открыта не в Telegram, будет null)
     const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
     if (tg) {
-      tg.ready();
-      tg.expand();
+      tg.ready();   // <<< MINI APP: сообщаем Telegram, что приложение загружено
+      tg.expand();  // <<< MINI APP: раскрываем приложение на весь экран
     }
 
     let trialActivated = false;
@@ -973,6 +983,7 @@
       document.getElementById("profDays").textContent = "2 дня";
       showToast("Активировано 2 дня и 5 ГБ бесплатно в AIVEL VPN!");
       if (tg) {
+        // <<< MINI APP: отправка данных боту (бот получит их как web_app_data), после этого Mini App закроется
         try { tg.sendData(JSON.stringify({ action: "activate_trial", lang: currentLang })); } catch (e) {}
       }
     }
@@ -996,6 +1007,7 @@
       document.getElementById("profDays").textContent = `${currentDays} дней`;
       showToast(`Тариф «${selectedPlan.title}» (${selectedPlan.price} ₽) выбран`);
       if (tg) {
+        // <<< MINI APP: отправка выбранного тарифа боту через sendData (бот получит web_app_data)
         try {
           tg.sendData(JSON.stringify({
             action: "select_plan",
@@ -1038,15 +1050,18 @@
 
     function openBot() {
       const url = "https://t.me/aivelvpn_bot";
+      // <<< MINI APP: открывает ссылку t.me внутри Telegram, без браузера
       tg && tg.openTelegramLink ? tg.openTelegramLink(url) : window.open(url, "_blank");
     }
 
     function openSupport() {
       const url = "https://t.me/AIVEL_SUPPORT";
+      // <<< MINI APP: открывает ссылку t.me внутри Telegram, без браузера
       tg && tg.openTelegramLink ? tg.openTelegramLink(url) : window.open(url, "_blank");
     }
 
     (function init() {
+      // <<< MINI APP: данные пользователя Telegram (id, username, имя)
       const user = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
       if (user) {
         currentUserId = String(user.id);
@@ -1057,6 +1072,7 @@
         document.getElementById("profIdText").textContent = currentUserId;
         document.getElementById("refLinkText").textContent = `https://t.me/aivelvpn_bot?start=ref_${currentUserId}`;
       }
+      // <<< MINI APP: параметр startapp (из ?startapp=home в кнопке бота или из start_param) выбирает стартовую страницу
       const params = new URLSearchParams(window.location.search);
       const startapp = params.get("startapp") || (tg && tg.initDataUnsafe ? tg.initDataUnsafe.start_param : "") || "home";
       if (startapp === "tariffs") switchPage("tariffs");
