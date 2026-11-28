@@ -116,6 +116,10 @@
       opacity: 0.75;
     }
 
+    .device-icon-tile { width: 42px; height: 42px; border-radius: 13px; background: rgba(255,255,255,.055); display: flex; align-items: center; justify-content: center; color: #aeb2c2; }
+    .device-brand-icon { width: 22px; height: 22px; fill: currentColor; }
+    .apple-icon { width: 18px; height: 24px; }
+
     .glass-panel {
       background: rgba(23, 18, 38, 0.74);
       backdrop-filter: blur(16px);
@@ -517,7 +521,7 @@
 
           <div class="bg-black/35 border border-white/10 rounded-xl p-2.5 text-[11px] text-slate-200 space-y-1">
             <div>⚡ Высокая скорость и стабильное соединение</div>
-            <div>📱 Устройства: Android, iOS, macOS, Windows</div>
+            <div>📱 Устройства: Android, iPhone, macOS, Windows</div>
             <div>💳 Тарифы: 1 мес — 80 ₽ · 3 мес — 190 ₽ · 6 мес — 390 ₽</div>
             <div>🤍 Всегда на связи — спасибо, что вы с нами!</div>
           </div>
@@ -661,7 +665,7 @@
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-1.5">
               <button onclick="selectQuickDevice('Android')" data-quick-dev="Android" class="quick-dev-btn px-2.5 py-1.5 rounded-xl bg-purple-500/25 border border-purple-400/50 text-xs font-bold text-white">Android</button>
-              <button onclick="selectQuickDevice('iOS')" data-quick-dev="iOS" class="quick-dev-btn px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-slate-300">iOS</button>
+              <button onclick="selectQuickDevice('iOS')" data-quick-dev="iOS" class="quick-dev-btn px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-slate-300">iPhone</button>
               <button onclick="selectQuickDevice('macOS')" data-quick-dev="macOS" class="quick-dev-btn px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-slate-300">macOS</button>
               <button onclick="selectQuickDevice('Windows')" data-quick-dev="Windows" class="quick-dev-btn px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-slate-300">Windows</button>
             </div>
@@ -753,27 +757,27 @@
         <div id="installStep1">
           <div class="text-center space-y-1 mb-4">
             <h2 class="text-xl font-extrabold text-white" data-i18n="chooseDevice">Выберите устройство</h2>
-            <p class="text-xs text-slate-400" data-i18n="chooseDeviceSub">На какое устройство подключаем AIVEL VPN?</p>
+            <p class="text-xs text-slate-400" data-i18n="chooseDeviceSub">На какое устройство подключаем VPN?</p>
           </div>
 
           <div class="grid grid-cols-2 gap-3 mb-5">
             <button type="button" data-platform="Android" onclick="selectPlatform('Android')" class="platform-card card-active glass-panel rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 text-center transition">
-              <span class="text-2xl">🤖</span>
+              <span class="device-icon-tile" aria-hidden="true"><svg class="device-brand-icon" viewBox="0 0 24 24"><path d="M7.1 8.2 5.7 5.8a.6.6 0 0 1 1-.6l1.5 2.5a8.4 8.4 0 0 1 7.6 0l1.5-2.5a.6.6 0 0 1 1 .6l-1.4 2.4a7.4 7.4 0 0 1 3.2 6.1H3.9a7.4 7.4 0 0 1 3.2-6.1ZM8 11a.8.8 0 1 0 0 1.6A.8.8 0 0 0 8 11Zm8 0a.8.8 0 1 0 0 1.6.8.8 0 0 0 0-1.6ZM4 15.3h16v2a1.7 1.7 0 0 1-1.7 1.7h-.8v2a1.2 1.2 0 0 1-2.4 0v-2h-6v2a1.2 1.2 0 0 1-2.4 0v-2h-.8A1.7 1.7 0 0 1 4 17.3v-2Zm-2-1.1a1.2 1.2 0 0 1 2.4 0v3.6a1.2 1.2 0 0 1-2.4 0v-3.6Zm17.6 0a1.2 1.2 0 0 1 2.4 0v3.6a1.2 1.2 0 0 1-2.4 0v-3.6Z"/></svg></span>
               <span class="text-sm font-bold text-white">Android</span>
             </button>
 
             <button type="button" data-platform="iOS" onclick="selectPlatform('iOS')" class="platform-card glass-panel rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 text-center transition">
-              <span class="text-2xl">📱</span>
-              <span class="text-sm font-bold text-white">iOS</span>
+              <span class="device-icon-tile" aria-hidden="true"><svg class="device-brand-icon apple-icon" viewBox="0 0 384 512"><path d="M318.7 268c-.2-36.7 16.4-64.4 49.9-84.8-18.7-26.7-46.9-41.4-84-44.3-35.1-2.8-73.4 20.6-88.4 20.6-15.8 0-49.4-19.6-76.1-19.6C64.9 141.2 7 184.8 7 272.4c0 25.9 4.7 52.7 14.1 80.5 12.5 36.7 57.5 126.6 104.4 125.1 24.6-.6 42-17.5 74.5-17.5 31.6 0 47.7 17.5 75.1 17.5 47.3-.7 88-82.4 99.9-119.2-63.5-29.9-56.3-87.9-56.3-90.8ZM262.1 102.9c27-32 24.5-61.3 23.7-71.7-23.8 1.4-51.4 16.2-67.1 34.1-17.3 19.3-27.5 43.2-25.3 70.3 25.8 2 49.3-11.3 68.7-32.7Z"/></svg></span>
+              <span class="text-sm font-bold text-white">iPhone</span>
             </button>
 
             <button type="button" data-platform="macOS" onclick="selectPlatform('macOS')" class="platform-card glass-panel rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 text-center transition">
-              <span class="text-2xl">💻</span>
+              <span class="device-icon-tile" aria-hidden="true"><svg class="device-brand-icon" viewBox="0 0 24 24"><path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm7 1H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h7V4Zm1 0v16h8a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1h-8ZM7.3 9a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8Zm9.4 0a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8ZM7 15.1c1.3 1 2.9 1.5 5 1.5s3.7-.5 5-1.5v1.1c-1.3 1.1-3 1.7-5 1.7s-3.7-.6-5-1.7v-1.1Z"/></svg></span>
               <span class="text-sm font-bold text-white">macOS</span>
             </button>
 
             <button type="button" data-platform="Windows" onclick="selectPlatform('Windows')" class="platform-card glass-panel rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 text-center transition">
-              <span class="text-2xl">🖥️</span>
+              <span class="device-icon-tile" aria-hidden="true"><svg class="device-brand-icon" viewBox="0 0 24 24"><path d="M2 4.2 10.7 3v8H2V4.2Zm10.3-1.4L22 1.5V11h-9.7V2.8ZM2 13h8.7v8L2 19.8V13Zm10.3 0H22v9.5l-9.7-1.3V13Z"/></svg></span>
               <span class="text-sm font-bold text-white">Windows</span>
             </button>
           </div>
@@ -1100,7 +1104,7 @@
           </div>
           <div class="flex items-center justify-between text-slate-400">
             <span data-i18n="supportedDevicesShort">Устройства:</span>
-            <span class="text-slate-200">Android, iOS, macOS, Windows</span>
+            <span class="text-slate-200">Android, iPhone, macOS, Windows</span>
           </div>
         </div>
 
@@ -1443,7 +1447,7 @@
         latestNews: 'Последние новости',
         channelLink: 'Канал',
         chooseDevice: 'Выберите устройство',
-        chooseDeviceSub: 'На какое устройство подключаем AIVEL VPN?',
+        chooseDeviceSub: 'На какое устройство подключаем VPN?',
         continueBtn: 'Продолжить',
         setupSub: 'Скачайте клиент и добавьте профиль AIVEL VPN',
         step1App: 'Скачайте приложение',
@@ -1529,7 +1533,7 @@
         latestNews: 'Soʻnggi yangiliklar',
         channelLink: 'Kanal',
         chooseDevice: 'Qurilmani tanlang',
-        chooseDeviceSub: 'Qaysi qurilmaga AIVEL VPN ulaymiz?',
+        chooseDeviceSub: 'VPNni qaysi qurilmaga ulaymiz?',
         continueBtn: 'Davom etish',
         setupSub: 'Ilovani yuklab oling va AIVEL VPN profilini qoʻshing',
         step1App: 'Ilovani yuklab oling',
@@ -1615,7 +1619,7 @@
         latestNews: 'Навигариҳои охирин',
         channelLink: 'Канал',
         chooseDevice: 'Дастгоҳро интихоб кунед',
-        chooseDeviceSub: 'Ба кадом дастгоҳ AIVEL VPN пайваст кунем?',
+        chooseDeviceSub: 'VPN-ро ба кадом дастгоҳ пайваст мекунем?',
         continueBtn: 'Идома додан',
         setupSub: 'Барномаро насб кунед ва профили AIVEL VPN-ро илова намоед',
         step1App: 'Барномаро боргирӣ кунед',
@@ -1701,7 +1705,7 @@
         latestNews: 'Акыркы жаңылыктар',
         channelLink: 'Канал',
         chooseDevice: 'Түзмөктү тандаңыз',
-        chooseDeviceSub: 'Кайсы түзмөккө AIVEL VPN туташтырабыз?',
+        chooseDeviceSub: 'VPN\'ди кайсы түзмөккө туташтырабыз?',
         continueBtn: 'Улантуу',
         setupSub: 'Кардарды орнотуп, AIVEL VPN профилин кошуңуз',
         step1App: 'Тиркемени жүктөп алыңыз',
@@ -1787,7 +1791,7 @@
         latestNews: 'Соңғы жаңалықтар',
         channelLink: 'Арна',
         chooseDevice: 'Құрылғыны таңдаңыз',
-        chooseDeviceSub: 'Қай құрылғыға AIVEL VPN қосамыз?',
+        chooseDeviceSub: 'VPN-ді қай құрылғыға қосамыз?',
         continueBtn: 'Жалғастыру',
         setupSub: 'Клиентті орнатып, AIVEL VPN профилін қосыңыз',
         step1App: 'Қосымшаны жүктеп алыңыз',
@@ -2134,9 +2138,11 @@
       navigateTab(appState.activeTab || 'home');
     }
 
+    function platformLabel(platform) { return platform === "iOS" ? "iPhone" : platform; }
+
     function selectQuickDevice(platform) {
       appState.selectedPlatform = platform;
-      document.getElementById('quickDeviceTitle').textContent = platform;
+      document.getElementById('quickDeviceTitle').textContent = platformLabel(platform);
       document.querySelectorAll('.quick-dev-btn').forEach(btn => {
         const active = btn.getAttribute('data-quick-dev') === platform;
         btn.className = active
@@ -2148,7 +2154,7 @@
 
     function selectPlatform(platform) {
       appState.selectedPlatform = platform;
-      document.getElementById('quickDeviceTitle').textContent = platform;
+      document.getElementById('quickDeviceTitle').textContent = platformLabel(platform);
       syncPlatformCards();
     }
 
@@ -2162,7 +2168,7 @@
     function goToInstallStep2() {
       document.getElementById('installStep1').classList.add('hidden');
       document.getElementById('installStep2').classList.remove('hidden');
-      document.getElementById('setupHeading').textContent = `${appState.selectedPlatform} — 2 простых шага`;
+      document.getElementById('setupHeading').textContent = `${platformLabel(appState.selectedPlatform)} — 2 простых шага`;
 
       const c1 = document.getElementById('stepCircle1');
       c1.textContent = '✓';
@@ -2277,7 +2283,7 @@
     function markSetupDone() {
       if (appState.connectedCount === 0) appState.connectedCount = 1;
       updateConnectedCountUI();
-      showToast(`${appState.selectedPlatform} готов к работе в AIVEL VPN`);
+      showToast(`${platformLabel(appState.selectedPlatform)} готов к работе в AIVEL VPN`);
       navigateTab('home');
     }
 
