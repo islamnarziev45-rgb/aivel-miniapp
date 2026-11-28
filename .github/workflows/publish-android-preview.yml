@@ -1,0 +1,34 @@
+name: Publish verified Android preview
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/publish-android-preview.yml'
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Download the tested build
+        run: gh run download 46134856342 --name aivel-vpn-android-preview --dir apk
+      - name: Publish separate ARM64 APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t apks < <(find apk -type f -name '*arm64-v8a*.apk')
+          test "${#apks[@]}" -eq 1
+          cp "${apks[0]}" AIVEL-VPN-Android-arm64-preview.apk
+          tag=android-preview-1
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" AIVEL-VPN-Android-arm64-preview.apk
+          else
+            gh release create "$tag" AIVEL-VPN-Android-arm64-preview.apk \
+              --target b2229fb5c1458e7467ee9162fd5fc3a6e882a51b \
+              --prerelease --title "AIVEL VPN Android — пробная сборка" \
+              --notes "Пробная APK для ARM64 с ручным импортом подписки. На базе v2rayNG 1.10.15 (GPL-3.0). Исходники: https://github.com/2dust/v2rayNG/tree/1.10.15 . Изменения сборки: https://github.com/islamnarziev45-rgb/aivel-miniapp/blob/b2229fb5c1458e7467ee9162fd5fc3a6e882a51b/.github/workflows/aivel-android.yml"
+          fi
