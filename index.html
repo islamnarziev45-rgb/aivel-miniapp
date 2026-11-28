@@ -817,10 +817,10 @@
             <p class="text-[11px] sm:text-xs text-slate-400 leading-relaxed" data-i18n="autoConfigHint">
               Настройки профиля подставятся автоматически после нажатия кнопки подключения.
             </p>
-            <button onclick="connectConfigAction()" class="alive-cta w-full py-2.5 px-2 sm:px-4 rounded-xl text-[11px] sm:text-xs font-extrabold text-white flex items-center justify-center gap-2">
+            <a id="connectClientBtn" href="#" onclick="connectConfigAction(event)" class="alive-cta w-full py-2.5 px-2 sm:px-4 rounded-xl text-[11px] sm:text-xs font-extrabold text-white flex items-center justify-center gap-2">
               <span>⚡</span>
               <span data-i18n="connectNow">Подключиться</span>
-            </button>
+            </a>
           </div>
           </div>
 
@@ -2234,18 +2234,21 @@
       }
     }
 
-    function connectConfigAction() {
+    function connectConfigAction(clickEvent) {
       const url = appState.subscriptionUrl;
       if (appState.subscriptionStatus !== "active" || !url) {
+        clickEvent?.preventDefault();
         showToast("Ключ появится после активации пробного периода или подписки.");
         return;
       }
 
       const client = appState.selectedClient;
+      // Use standard, long-standing import routes instead of newer encrypted
+      // formats so clients from older releases can handle the subscription.
       const scheme = client === "Happ"
         ? "happ://add/" + url
         : client === "INCY"
-          ? "incy://import/" + url
+          ? "incy://add/" + url
           : "v2raytun://import/" + encodeURIComponent(url);
       const packageNames = {
         Happ: "com.happproxy",
@@ -2255,16 +2258,21 @@
       const userAgent = navigator.userAgent || "";
       const isAndroid = /Android/i.test(userAgent);
       const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
-      let launchUrl = scheme;
+      const anchor = clickEvent?.currentTarget;
 
-      // Build an Android intent URL, but navigate in the current WebView directly
-      // from this real button tap. Hidden target=_blank links are commonly blocked
-      // by Telegram's WebView and only trigger the clipboard fallback.
+      if (!anchor || anchor.tagName !== "A") {
+        clickEvent?.preventDefault();
+        copyTextToClipboard(url);
+        showToast("Ссылка скопирована. Нажмите «Подключиться» ещё раз.");
+        return;
+      }
+
+      let launchUrl = scheme;
       if (isAndroid && packageNames[client]) {
-        const schemeParts = scheme.split("://", 2);
-        if (schemeParts.length === 2) {
+        const parts = scheme.split("://", 2);
+        if (parts.length === 2) {
           const fallbackUrl = clientDownloadUrls[client]?.Android || "https://happ.info/ru/";
-          launchUrl = "intent://" + schemeParts[1] + "#Intent;scheme=" + schemeParts[0]
+          launchUrl = "intent://" + parts[1] + "#Intent;scheme=" + parts[0]
             + ";package=" + packageNames[client]
             + ";S.browser_fallback_url=" + encodeURIComponent(fallbackUrl)
             + ";end";
@@ -2272,22 +2280,21 @@
       }
 
       if (isAndroid || isIOS) {
-        try {
-          // Keep this navigation synchronous with the user's tap so Android/iOS
-          // can hand the custom URL to the installed VPN client.
-          window.location.href = launchUrl;
-        } catch (error) {
-          console.warn("VPN client deep link could not be opened:", error);
-        }
+        // Set the href on the actual tapped anchor. The WebView now sees a real
+        // user-initiated navigation, instead of a JS redirect or hidden popup.
+        anchor.href = launchUrl;
+        anchor.target = "_self";
+        anchor.rel = "noopener";
         window.setTimeout(() => {
           if (document.visibilityState === "visible") {
             copyTextToClipboard(url);
-            showToast("Не удалось открыть " + client + ". Ссылка скопирована — импортируйте её в приложении.");
+            showToast("Приложение не открылось. Ссылка скопирована — импортируйте её в " + client + ".");
           }
         }, 1800);
         return;
       }
 
+      clickEvent.preventDefault();
       copyTextToClipboard(url);
       showToast("Откройте Mini App на телефоне, чтобы подключить " + client + ".");
     }
