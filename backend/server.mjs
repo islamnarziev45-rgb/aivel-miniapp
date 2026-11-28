@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { openSubscriptions, planAmounts } from "./source/subscriptions.mjs";
 import { createMarzbanClient } from "./source/marzban.mjs";
 import { createPlategaClient } from "./source/platega.mjs";
@@ -21,6 +21,8 @@ if (allowedOrigin.protocol !== "https:" || allowedOrigin.pathname !== "/" || all
 }
 
 const subscriptions = openSubscriptions(databasePath);
+const connectHandoffs = new Map();
+const connectHandoffTtlMs = 30 * 60 * 1000;
 const marzban = createMarzbanClient({
   apiOrigin: env.AIVEL_MARZBAN_API || env.AIVEL_MARZBAN_API_ORIGIN || "http://127.0.0.1:8000",
   username: env.AIVEL_MARZBAN_USER || env.AIVEL_MARZBAN_USERNAME,
@@ -82,6 +84,35 @@ async function readJson(request, maxBytes = 4096) {
   if (!size) return {};
   try { return JSON.parse(Buffer.concat(chunks).toString("utf8")); }
   catch { throw new Error("invalid_json"); }
+}
+
+function createConnectHandoff(subscriptionUrl) {
+  for (const [token, item] of connectHandoffs) {
+    if (item.expiresAt <= Date.now()) connectHandoffs.delete(token);
+  }
+  while (connectHandoffs.size >= 5000) {
+    connectHandoffs.delete(connectHandoffs.keys().next().value);
+  }
+  const url = new URL(subscriptionUrl);
+  if (url.protocol !== "https:" || url.username || url.password) throw new Error("invalid_subscription_link");
+  const token = randomBytes(32).toString("base64url");
+  connectHandoffs.set(token, { subscriptionUrl: url.href, expiresAt: Date.now() + connectHandoffTtlMs });
+  return token;
+}
+
+function redeemConnectHandoff(token) {
+  if (typeof token !== "string" || !/^[A-Za-z0-9_-]{43}$/.test(token)) return null;
+  const item = connectHandoffs.get(token);
+  connectHandoffs.delete(token);
+  if (!item || item.expiresAt <= Date.now()) return null;
+  const encoded = encodeURIComponent(item.subscriptionUrl);
+  return {
+    links: {
+      Happ: "happ://add/" + item.subscriptionUrl,
+      INCY: "incy://add/" + item.subscriptionUrl,
+      v2RayTun: "v2raytun://import/" + encoded
+    }
+  };
 }
 
 function corsHeaders(origin) {
@@ -281,13 +312,29 @@ async function handle(request, response) {
   try { cors = corsHeaders(verifyOrigin(request)); }
   catch { return json(response, 403, { error: "miniapp_origin_denied" }); }
   if (request.method !== "POST") return json(response, 404, { error: "not_found" }, cors);
-  let telegram;
-  try { telegram = authenticate(request); }
-  catch { return json(response, 401, { error: "invalid_telegram_data" }, cors); }
 
   try {
-    if (request.url === "/miniapp/subscription" || request.url === "/miniapp/referral") {
-      if (request.url === "/miniapp/referral") bindReferral(telegram.id, telegram.startParam);
+    if (request.url === "/miniapp/subscription") {
+      const body = await readJson(request);
+      if (typeof body.handoff_token === "string") {
+        const handoff = redeemConnectHandoff(body.handoff_token);
+        return handoff
+          ? json(response, 200, handoff, cors)
+          : json(response, 410, { error: "handoff_expired" }, cors);
+      }
+      const telegram = authenticate(request);
+      const data = await describe(telegram.id, telegram.startParam);
+      if (data.status === "active" && data.subscription_url) {
+        data.connect_handoff_token = createConnectHandoff(data.subscription_url);
+      }
+      return json(response, 200, data, cors);
+    }
+
+    let telegram;
+    try { telegram = authenticate(request); }
+    catch { return json(response, 401, { error: "invalid_telegram_data" }, cors); }
+    if (request.url === "/miniapp/referral") {
+      bindReferral(telegram.id, telegram.startParam);
       return json(response, 200, await describe(telegram.id, telegram.startParam), cors);
     }
     if (request.url === "/miniapp/trial") {
