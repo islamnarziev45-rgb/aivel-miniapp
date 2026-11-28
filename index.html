@@ -2236,22 +2236,60 @@
 
     function connectConfigAction() {
       const url = appState.subscriptionUrl;
-      if (!url) {
-        showToast("Сначала активируйте пробный период или оформите подписку.");
+      if (appState.subscriptionStatus !== "active" || !url) {
+        showToast("Ключ появится после активации пробного периода или подписки.");
         return;
       }
-      const scheme = appState.selectedClient === "Happ"
+
+      const client = appState.selectedClient;
+      const scheme = client === "Happ"
         ? "happ://add/" + url
-        : appState.selectedClient === "INCY"
+        : client === "INCY"
           ? "incy://import/" + url
           : "v2raytun://import/" + encodeURIComponent(url);
-      window.location.href = scheme;
+      const packageNames = {
+        Happ: "com.happproxy",
+        INCY: "llc.itdev.incy",
+        v2RayTun: "com.v2raytun.android"
+      };
+      const isAndroid = /Android/i.test(navigator.userAgent || "");
+      const androidPackage = packageNames[client];
+      let launchUrl = scheme;
+
+      // Telegram's Android WebView cannot navigate directly to happ:// or incy://.
+      // Use Android's intent URL so the OS can hand the import link to the installed app.
+      if (isAndroid && androidPackage) {
+        const match = /^([a-z][a-z0-9+.-]*):\/\/([\\s\\S]*)$/i.exec(scheme);
+        if (match) {
+          const fallbackUrl = clientDownloadUrls[client]?.Android || "https://happ.info/ru/";
+          launchUrl = "intent://" + match[2] + "#Intent;scheme=" + match[1]
+            + ";package=" + androidPackage
+            + ";S.browser_fallback_url=" + encodeURIComponent(fallbackUrl)
+            + ";end";
+        }
+      }
+
+      // Preserve the subscription link in clipboard as a recovery path if Telegram or
+      // the operating system refuses to open the selected client.
+      copyTextToClipboard(url);
+      try {
+        const link = document.createElement("a");
+        link.href = launchUrl;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        console.warn("VPN client deep link could not be opened:", error);
+      }
+
       window.setTimeout(() => {
         if (document.visibilityState === "visible") {
-          copyTextToClipboard(url);
-          showToast("Если клиент не открылся, ссылка подписки скопирована — вставьте её в " + appState.selectedClient + ".");
+          showToast("Ссылка подписки скопирована. Если приложение не открылось, вставьте её в " + client + ".");
         }
-      }, 1400);
+      }, 1800);
     }
 
     function markSetupDone() {
