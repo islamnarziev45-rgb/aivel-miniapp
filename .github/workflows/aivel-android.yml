@@ -1,0 +1,127 @@
+name: AIVEL VPN Android preview
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/aivel-android.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout upstream VPN client
+      uses: actions/checkout@v4.2.2
+      with:
+        repository: 2dust/v2rayNG
+        ref: '1.10.15'
+        path: upstream
+        submodules: recursive
+        fetch-depth: 0
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3.2.0
+      with:
+        log-accepted-android-sdk-licenses: false
+        cmdline-tools-version: '12266719'
+        packages: 'platforms;android-35 build-tools;35.0.0 platform-tools'
+
+    - name: Install NDK
+      run: |
+        echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+          --channel=0 \
+          --install "ndk;28.2.13676358"
+        echo "NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358" >> $GITHUB_ENV
+        sed -i '10i\
+        \
+            ndkVersion = "28.2.13676358"' ${{ github.workspace }}/upstream/V2rayNG/app/build.gradle.kts
+
+    - name: Restore cached libtun2socks
+      id: cache-libtun2socks-restore
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ github.workspace }}/upstream/libs
+        key: libtun2socks-${{ runner.os }}-${{ env.NDK_HOME }}-${{ hashFiles('upstream/.git/modules/hev-socks5-tunnel/HEAD') }}-${{ hashFiles('upstream/.git/modules/badvpn/HEAD') }}-${{ hashFiles('upstream/.git/modules/libancillary/HEAD') }}
+
+    - name: Build libtun2socks
+      if: steps.cache-libtun2socks-restore.outputs.cache-hit != 'true'
+      run: |
+        cd upstream
+        bash compile-tun2socks.sh
+    
+    - name: Save libtun2socks
+      if: steps.cache-libtun2socks-restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ github.workspace }}/upstream/libs
+        key: libtun2socks-${{ runner.os }}-${{ env.NDK_HOME }}-${{ hashFiles('upstream/.git/modules/hev-socks5-tunnel/HEAD') }}-${{ hashFiles('upstream/.git/modules/badvpn/HEAD') }}-${{ hashFiles('upstream/.git/modules/libancillary/HEAD') }}
+
+    - name: Copy libtun2socks
+      run: |
+        cp -r ${{ github.workspace }}/upstream/libs ${{ github.workspace }}/upstream/V2rayNG/app
+
+    - name: Fetch AndroidLibXrayLite tag
+      working-directory: upstream
+      run: |
+        pushd AndroidLibXrayLite
+        CURRENT_TAG=$(git describe --tags --abbrev=0)
+        echo "Current tag in this repo: $CURRENT_TAG"
+        echo "CURRENT_TAG=$CURRENT_TAG" >> $GITHUB_ENV
+        popd
+
+    - name: Download libv2ray
+      uses: robinraju/release-downloader@v1.12
+      with:
+        repository: '2dust/AndroidLibXrayLite'
+        tag: ${{ env.CURRENT_TAG }}
+        fileName: 'libv2ray.aar'
+        out-file-path: upstream/V2rayNG/app/libs/
+
+    - name: Restore cached libhysteria2
+      id: cache-libhysteria2-restore
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ github.workspace }}/upstream/hysteria/libs
+        key: libhysteria2-${{ runner.os }}-${{ env.NDK_HOME }}-${{ hashFiles('upstream/.git/modules/hysteria/HEAD') }}-${{ hashFiles('upstream/libhysteria2.sh') }}
+
+    - name: Setup Golang
+      if: steps.cache-libhysteria2-restore.outputs.cache-hit != 'true'
+      uses: actions/setup-go@v5.4.0
+      with:
+        go-version-file: 'upstream/AndroidLibXrayLite/go.mod'
+        cache: false
+
+    - name: Build libhysteria2
+      if: steps.cache-libhysteria2-restore.outputs.cache-hit != 'true'
+      run: |
+        cd upstream
+        bash libhysteria2.sh
+
+    - name: Save libhysteria2
+      if: steps.cache-libhysteria2-restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ github.workspace }}/upstream/hysteria/libs
+        key: libhysteria2-${{ runner.os }}-${{ env.NDK_HOME }}-${{ hashFiles('upstream/.git/modules/hysteria/HEAD') }}-${{ hashFiles('upstream/libhysteria2.sh') }}
+
+    - name: Copy libhysteria2
+      run: |
+        cp -r ${{ github.workspace }}/upstream/hysteria/libs ${{ github.workspace }}/upstream/V2rayNG/app
+
+    - name: Setup Java
+      uses: actions/setup-java@v4.7.0
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Build branded preview
+      working-directory: upstream/V2rayNG
+      run: |
+        sed -i 's/applicationId = "com.v2ray.ang"/applicationId = "vpn.aivel.android"/' app/build.gradle.kts
+        sed -i 's/>v2rayNG<\//>AIVEL VPN<\//' app/src/main/res/values/strings.xml
+        ./gradlew assembleFdroidDebug
+    - name: Upload preview APKs
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: aivel-vpn-android-preview
+        if-no-files-found: error
+        path: upstream/V2rayNG/app/build/outputs/apk/fdroid/debug/*.apk
