@@ -2259,10 +2259,10 @@
       // Telegram's Android WebView cannot navigate directly to happ:// or incy://.
       // Use Android's intent URL so the OS can hand the import link to the installed app.
       if (isAndroid && androidPackage) {
-        const match = /^([a-z][a-z0-9+.-]*):\/\/([\\s\\S]*)$/i.exec(scheme);
-        if (match) {
+        const schemeParts = scheme.split("://", 2);
+        if (schemeParts.length === 2) {
           const fallbackUrl = clientDownloadUrls[client]?.Android || "https://happ.info/ru/";
-          launchUrl = "intent://" + match[2] + "#Intent;scheme=" + match[1]
+          launchUrl = "intent://" + schemeParts[1] + "#Intent;scheme=" + schemeParts[0]
             + ";package=" + androidPackage
             + ";S.browser_fallback_url=" + encodeURIComponent(fallbackUrl)
             + ";end";
