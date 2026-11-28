@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Подключение AIVEL VPN</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #090610; color: #f8fafc; display: grid; place-items: center; padding: 24px 16px; }
+    main { width: min(100%, 460px); border: 1px solid rgba(255,255,255,.12); border-radius: 24px; padding: 24px; background: linear-gradient(150deg, rgba(56,25,75,.96), rgba(20,14,31,.98)); box-shadow: 0 18px 60px rgba(192,38,211,.18); }
+    h1 { margin: 0 0 8px; font-size: 23px; }
+    p { color: #b7b4c6; line-height: 1.5; }
+    .apps { display: grid; gap: 12px; margin: 22px 0; }
+    .app-link { display: flex; align-items: center; justify-content: center; min-height: 54px; border-radius: 16px; padding: 12px 16px; text-decoration: none; color: white; font-weight: 800; background: linear-gradient(100deg, #7c3aed, #c026d3, #db2777); border: 1px solid rgba(255,255,255,.28); box-shadow: 0 8px 22px rgba(192,38,211,.28); }
+    .app-link:active { transform: scale(.985); }
+    .fallback { margin-top: 18px; border-top: 1px solid rgba(255,255,255,.12); padding-top: 18px; }
+    .fallback summary { color: #d8b4fe; font-weight: 700; cursor: pointer; }
+    .fallback input { width: 100%; margin-top: 12px; padding: 11px; border-radius: 12px; border: 1px solid rgba(255,255,255,.16); background: rgba(0,0,0,.28); color: white; }
+    .copy { width: 100%; margin-top: 9px; min-height: 44px; border: 0; border-radius: 12px; background: #2b2636; color: white; font-weight: 700; }
+    #error { color: #fca5a5; }
+    #state { color: #86efac; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Подключение AIVEL VPN</h1>
+    <p>Откройте установленный VPN-клиент. После этого подтвердите импорт подписки в приложении.</p>
+    <p id="state">Готовлю защищённые ссылки…</p>
+    <div id="apps" class="apps hidden"></div>
+    <p id="error" class="hidden"></p>
+    <details id="fallback" class="fallback hidden">
+      <summary>Если приложение не открылось</summary>
+      <p>Скопируйте ссылку и добавьте её в VPN-клиент как подписку.</p>
+      <input id="subscription" readonly aria-label="Ссылка подписки">
+      <button id="copy" class="copy" type="button">Скопировать ссылку</button>
+    </details>
+  </main>
+  <script>
+    const API = "https://195.64.106.182:8443";
+    const token = String(location.hash || "").slice(1);
+    history.replaceState(null, "", location.pathname);
+    const state = document.getElementById("state");
+    const apps = document.getElementById("apps");
+    const error = document.getElementById("error");
+    const fallback = document.getElementById("fallback");
+    const subscription = document.getElementById("subscription");
+    const labels = {
+      Happ: ["🟣 Открыть Happ", "com.happproxy", "https://happ.info/ru/"],
+      INCY: ["🔵 Открыть INCY", "llc.itdev.incy", "https://incy.cc/"],
+      v2RayTun: ["🟢 Открыть v2RayTun", "com.v2raytun.android", "https://play.google.com/store/apps/details?id=com.v2raytun.android"]
+    };
+
+    function androidIntent(deepLink, packageName, fallbackUrl) {
+      const separator = deepLink.indexOf("://");
+      if (separator < 0) return deepLink;
+      const scheme = deepLink.slice(0, separator);
+      const rest = deepLink.slice(separator + 3);
+      return "intent://" + rest + "#Intent;scheme=" + scheme
+        + ";package=" + packageName
+        + ";S.browser_fallback_url=" + encodeURIComponent(fallbackUrl)
+        + ";end";
+    }
+
+    function showError(message) {
+      state.classList.add("hidden");
+      error.textContent = message;
+      error.classList.remove("hidden");
+      fallback.classList.remove("hidden");
+    }
+
+    document.getElementById("copy").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(subscription.value);
+        document.getElementById("copy").textContent = "Ссылка скопирована";
+      } catch {
+        subscription.focus();
+        subscription.select();
+        document.execCommand("copy");
+        document.getElementById("copy").textContent = "Скопируйте выделенную ссылку";
+      }
+    });
+
+    async function prepare() {
+      if (!/^[A-Za-z0-9_-]{43}$/.test(token)) {
+        showError("Ссылка подключения недействительна или уже использована. Вернитесь в Mini App и нажмите «Подключиться» ещё раз.");
+        return;
+      }
+      try {
+        const response = await fetch(API + "/miniapp/subscription", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          body: JSON.stringify({ handoff_token: token })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.links) {
+          showError("Ссылка подключения истекла или уже использована. Вернитесь в Mini App и нажмите «Подключиться» ещё раз.");
+          return;
+        }
+
+        subscription.value = data.links.Happ.slice("happ://add/".length);
+        const isAndroid = /Android/i.test(navigator.userAgent || "");
+        for (const name of ["Happ", "INCY", "v2RayTun"]) {
+          const [label, packageName, fallbackUrl] = labels[name];
+          const href = data.links[name];
+          const link = document.createElement("a");
+          link.className = "app-link";
+          link.textContent = label;
+          link.href = isAndroid ? androidIntent(href, packageName, fallbackUrl) : href;
+          link.rel = "noreferrer";
+          apps.appendChild(link);
+        }
+        state.textContent = "Выберите VPN-клиент:";
+        apps.classList.remove("hidden");
+        fallback.classList.remove("hidden");
+      } catch {
+        showError("Не удалось подготовить ссылки. Проверьте интернет и вернитесь в Mini App, чтобы повторить попытку.");
+      }
+    }
+    prepare();
+  </script>
+</body>
+</html>
