@@ -2252,44 +2252,44 @@
         INCY: "llc.itdev.incy",
         v2RayTun: "com.v2raytun.android"
       };
-      const isAndroid = /Android/i.test(navigator.userAgent || "");
-      const androidPackage = packageNames[client];
+      const userAgent = navigator.userAgent || "";
+      const isAndroid = /Android/i.test(userAgent);
+      const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
       let launchUrl = scheme;
 
-      // Telegram's Android WebView cannot navigate directly to happ:// or incy://.
-      // Use Android's intent URL so the OS can hand the import link to the installed app.
-      if (isAndroid && androidPackage) {
+      // Build an Android intent URL, but navigate in the current WebView directly
+      // from this real button tap. Hidden target=_blank links are commonly blocked
+      // by Telegram's WebView and only trigger the clipboard fallback.
+      if (isAndroid && packageNames[client]) {
         const schemeParts = scheme.split("://", 2);
         if (schemeParts.length === 2) {
           const fallbackUrl = clientDownloadUrls[client]?.Android || "https://happ.info/ru/";
           launchUrl = "intent://" + schemeParts[1] + "#Intent;scheme=" + schemeParts[0]
-            + ";package=" + androidPackage
+            + ";package=" + packageNames[client]
             + ";S.browser_fallback_url=" + encodeURIComponent(fallbackUrl)
             + ";end";
         }
       }
 
-      // Preserve the subscription link in clipboard as a recovery path if Telegram or
-      // the operating system refuses to open the selected client.
-      copyTextToClipboard(url);
-      try {
-        const link = document.createElement("a");
-        link.href = launchUrl;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.style.display = "none";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      } catch (error) {
-        console.warn("VPN client deep link could not be opened:", error);
+      if (isAndroid || isIOS) {
+        try {
+          // Keep this navigation synchronous with the user's tap so Android/iOS
+          // can hand the custom URL to the installed VPN client.
+          window.location.href = launchUrl;
+        } catch (error) {
+          console.warn("VPN client deep link could not be opened:", error);
+        }
+        window.setTimeout(() => {
+          if (document.visibilityState === "visible") {
+            copyTextToClipboard(url);
+            showToast("Не удалось открыть " + client + ". Ссылка скопирована — импортируйте её в приложении.");
+          }
+        }, 1800);
+        return;
       }
 
-      window.setTimeout(() => {
-        if (document.visibilityState === "visible") {
-          showToast("Ссылка подписки скопирована. Если приложение не открылось, вставьте её в " + client + ".");
-        }
-      }, 1800);
+      copyTextToClipboard(url);
+      showToast("Откройте Mini App на телефоне, чтобы подключить " + client + ".");
     }
 
     function markSetupDone() {
