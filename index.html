@@ -1866,7 +1866,7 @@
       const raw = row.expires_at ?? data.expires_at ?? row.expire ?? data.expire;
       let date = null;
       if (raw !== undefined && raw !== null && raw !== "") {
-        if (typeof raw === "number" || /^\\d{9,13}$/.test(String(raw))) {
+        if (typeof raw === "number" || /^[0-9]{9,13}$/.test(String(raw))) {
           const timestamp = Number(raw);
           date = new Date(timestamp < 1e12 ? timestamp * 1000 : timestamp);
         } else {
