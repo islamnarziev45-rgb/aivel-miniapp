@@ -1404,6 +1404,7 @@
       lowVision: false,
       subscriptionUrl: "",
       subscriptionStatus: "loading",
+      subscriptionType: "trial",
       selectedClient: "Happ",
       telegramUserId: ""
     };
@@ -1640,7 +1641,7 @@
         activeStatus: 'Фаъол',
         inactiveStatus: 'Ғайрифаъол',
         planTrial: 'Давраи озмоишӣ',
-        planSubscription: 'Обунa',
+        planSubscription: 'Обуна',
         homeTrialTitle: 'AIVEL VPN • Давраи озмоишӣ',
         homeSubscriptionTitle: 'AIVEL VPN • Обуна',
         expiresIn: 'Мӯҳлати амал',
@@ -1883,6 +1884,7 @@
       const usedLabel = usedGb + " ГБ";
       appState.subscriptionUrl = row.subscription_url || data.subscription_url || row.link || data.link || "";
       appState.subscriptionStatus = status;
+      appState.subscriptionType = accessType;
       appState.trialActivated = status === "active" && accessType === "trial";
       const keyCard = document.getElementById("profileKeyCard");
       if (keyCard) keyCard.classList.toggle("hidden", status !== "active" || !appState.subscriptionUrl);
@@ -2400,6 +2402,16 @@
         const key = el.getAttribute('data-i18n');
         if (dict[key]) el.textContent = dict[key];
       });
+
+      const active = appState.subscriptionStatus === "active";
+      const planType = appState.subscriptionType === "trial" ? dict.planTrial : dict.planSubscription;
+      const homeTitle = appState.subscriptionType === "trial" ? dict.homeTrialTitle : dict.homeSubscriptionTitle;
+      const profilePlan = document.getElementById("profilePlanName"); if (profilePlan) profilePlan.textContent = planType;
+      const homePlan = document.getElementById("homePlanTypeLabel"); if (homePlan) homePlan.textContent = planType;
+      const homeAccess = document.getElementById("homeAccessTypeTitle"); if (homeAccess) homeAccess.textContent = homeTitle;
+      updateSubscriptionStatusBadge("homeTrialPill", "homeStatusLabel", active, dict);
+      updateSubscriptionStatusBadge("profileStatusBadge", "profileStatusLabel", active, dict);
+      updateSubscriptionStatusBadge("profileKeyStatusBadge", "profileKeyStatusLabel", active, dict);
 
       document.getElementById('activeLangName').textContent = `Выбран язык: ${dict.langLabel}`;
     }
