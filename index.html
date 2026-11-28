@@ -1409,6 +1409,7 @@
       subscriptionStatus: "loading",
       subscriptionType: "trial",
       subscriptionExpiryLabel: "",
+      subscriptionExpiryTimestamp: null,
       selectedClient: "Happ",
       telegramUserId: ""
     };
@@ -1861,7 +1862,7 @@
       return data;
     }
 
-    function formatSubscriptionExpiry(row, data, remainingSeconds) {
+    function getSubscriptionExpiryTimestamp(row, data, remainingSeconds) {
       const raw = row.expires_at ?? data.expires_at ?? row.expire ?? data.expire;
       let date = null;
       if (raw !== undefined && raw !== null && raw !== "") {
@@ -1875,8 +1876,13 @@
       if ((!date || Number.isNaN(date.getTime())) && remainingSeconds > 0) {
         date = new Date(Date.now() + remainingSeconds * 1000);
       }
-      if (!date || Number.isNaN(date.getTime())) return "";
-      const locale = { ru: "ru-RU", uz: "uz-UZ", tg: "tg-TJ", kg: "ky-KG", kz: "kk-KZ" }[appState.lang] || "ru-RU";
+      return date && !Number.isNaN(date.getTime()) ? date.getTime() : null;
+    }
+
+    function formatSubscriptionExpiry(timestamp, language = appState.lang) {
+      if (!Number.isFinite(timestamp)) return "";
+      const date = new Date(timestamp);
+      const locale = { ru: "ru-RU", uz: "uz-UZ", tg: "tg-TJ", kg: "ky-KG", kz: "kk-KZ" }[language] || "ru-RU";
       const options = { day: "numeric", month: "long" };
       if (date.getFullYear() !== new Date().getFullYear()) options.year = "numeric";
       return new Intl.DateTimeFormat(locale, options).format(date);
@@ -1906,7 +1912,9 @@
       });
       const seconds = Number(row.remaining_seconds ?? data.remaining_seconds ?? 0);
       const days = Math.max(0, Math.ceil(seconds / 86400));
-      const expiryLabel = formatSubscriptionExpiry(row, data, seconds);
+      const expiryTimestamp = getSubscriptionExpiryTimestamp(row, data, seconds);
+      appState.subscriptionExpiryTimestamp = expiryTimestamp;
+      const expiryLabel = formatSubscriptionExpiry(expiryTimestamp);
       appState.subscriptionExpiryLabel = expiryLabel;
       const bytes = Number(row.data_limit ?? data.data_limit ?? (accessType === "trial" ? 5 * 1024 ** 3 : 0));
       const limit = Math.max(0, Math.round(bytes / (1024 ** 3)));
@@ -2442,6 +2450,7 @@
 
       const active = appState.subscriptionStatus === "active";
       const planType = appState.subscriptionType === "trial" ? dict.planTrial : dict.planSubscription;
+      appState.subscriptionExpiryLabel = formatSubscriptionExpiry(appState.subscriptionExpiryTimestamp, langCode);
       const homeTitle = appState.subscriptionType === "trial" ? dict.homeTrialTitle : dict.homeSubscriptionTitle;
       const profilePlan = document.getElementById("profilePlanName"); if (profilePlan) profilePlan.textContent = planType;
       const homePlan = document.getElementById("homePlanTypeLabel"); if (homePlan) homePlan.textContent = active && appState.subscriptionExpiryLabel ? `${planType} · ${dict.dateUntil} ${appState.subscriptionExpiryLabel}` : planType;
