@@ -105,12 +105,11 @@ function redeemConnectHandoff(token) {
   const item = connectHandoffs.get(token);
   connectHandoffs.delete(token);
   if (!item || item.expiresAt <= Date.now()) return null;
-  const encoded = encodeURIComponent(item.subscriptionUrl);
   return {
     links: {
       Happ: "happ://add/" + item.subscriptionUrl,
       INCY: "incy://add/" + item.subscriptionUrl,
-      v2RayTun: "v2raytun://import/" + encoded
+      v2RayTun: "v2raytun://import/" + item.subscriptionUrl
     }
   };
 }
