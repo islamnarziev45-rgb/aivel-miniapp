@@ -1406,6 +1406,7 @@
       theme: 'dark',
       lowVision: false,
       subscriptionUrl: "",
+      connectHandoffToken: "",
       subscriptionStatus: "loading",
       subscriptionType: "trial",
       subscriptionExpiryLabel: "",
@@ -1923,6 +1924,7 @@
       const usedGb = usedBytes === 0 ? "0" : Number((usedBytes / (1024 ** 3)).toFixed(2)).toString();
       const usedLabel = usedGb + " ГБ";
       appState.subscriptionUrl = row.subscription_url || data.subscription_url || row.link || data.link || "";
+      appState.connectHandoffToken = data.connect_handoff_token || "";
       appState.subscriptionStatus = status;
       appState.subscriptionType = accessType;
       appState.trialActivated = status === "active" && accessType === "trial";
@@ -2235,68 +2237,40 @@
     }
 
     function connectConfigAction(clickEvent) {
-      const url = appState.subscriptionUrl;
-      if (appState.subscriptionStatus !== "active" || !url) {
+      if (appState.subscriptionStatus !== "active" || !appState.subscriptionUrl) {
         clickEvent?.preventDefault();
         showToast("Ключ появится после активации пробного периода или подписки.");
         return;
       }
-
-      const client = appState.selectedClient;
-      // Use standard, long-standing import routes instead of newer encrypted
-      // formats so clients from older releases can handle the subscription.
-      const scheme = client === "Happ"
-        ? "happ://add/" + url
-        : client === "INCY"
-          ? "incy://add/" + url
-          : "v2raytun://import/" + encodeURIComponent(url);
-      const packageNames = {
-        Happ: "com.happproxy",
-        INCY: "llc.itdev.incy",
-        v2RayTun: "com.v2raytun.android"
-      };
-      const userAgent = navigator.userAgent || "";
-      const isAndroid = /Android/i.test(userAgent);
-      const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
-      const anchor = clickEvent?.currentTarget;
-
-      if (!anchor || anchor.tagName !== "A") {
+      const token = appState.connectHandoffToken;
+      if (!token) {
         clickEvent?.preventDefault();
-        copyTextToClipboard(url);
-        showToast("Ссылка скопирована. Нажмите «Подключиться» ещё раз.");
+        showToast("Обновляю защищённую ссылку. Нажмите «Подключиться» ещё раз через секунду.");
+        refreshSubscriptionState(false);
         return;
       }
 
-      let launchUrl = scheme;
-      if (isAndroid && packageNames[client]) {
-        const parts = scheme.split("://", 2);
-        if (parts.length === 2) {
-          const fallbackUrl = clientDownloadUrls[client]?.Android || "https://happ.info/ru/";
-          launchUrl = "intent://" + parts[1] + "#Intent;scheme=" + parts[0]
-            + ";package=" + packageNames[client]
-            + ";S.browser_fallback_url=" + encodeURIComponent(fallbackUrl)
-            + ";end";
-        }
-      }
-
-      if (isAndroid || isIOS) {
-        // Set the href on the actual tapped anchor. The WebView now sees a real
-        // user-initiated navigation, instead of a JS redirect or hidden popup.
-        anchor.href = launchUrl;
-        anchor.target = "_self";
-        anchor.rel = "noopener";
-        window.setTimeout(() => {
-          if (document.visibilityState === "visible") {
-            copyTextToClipboard(url);
-            showToast("Приложение не открылось. Ссылка скопирована — импортируйте её в " + client + ".");
-          }
-        }, 1800);
+      const handoffPage = new URL("connect.html", window.location.href);
+      handoffPage.hash = token;
+      const telegram = window.Telegram && window.Telegram.WebApp;
+      if (telegram && typeof telegram.openLink === "function") {
+        // HTTPS is permitted by Telegram and opens in the external browser.
+        // The fragment token is not sent to GitHub Pages in the page request.
+        clickEvent?.preventDefault();
+        telegram.openLink(handoffPage.href);
+      } else if (clickEvent?.currentTarget?.tagName === "A") {
+        // Outside Telegram, let the user's actual anchor tap open the HTTPS page.
+        clickEvent.currentTarget.href = handoffPage.href;
+        clickEvent.currentTarget.target = "_blank";
+        clickEvent.currentTarget.rel = "noopener noreferrer";
+      } else {
+        clickEvent?.preventDefault();
+        showToast("Откройте Mini App из Telegram, чтобы подключить приложение.");
         return;
       }
 
-      clickEvent.preventDefault();
-      copyTextToClipboard(url);
-      showToast("Откройте Mini App на телефоне, чтобы подключить " + client + ".");
+      // Prepare a fresh one-time handoff for the next tap while this one is opened.
+      refreshSubscriptionState(false);
     }
 
     function markSetupDone() {
