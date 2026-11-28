@@ -16,6 +16,8 @@
     .apps { display: grid; gap: 12px; margin: 22px 0; }
     .app-link { display: flex; align-items: center; justify-content: center; min-height: 54px; border-radius: 16px; padding: 12px 16px; text-decoration: none; color: white; font-weight: 800; background: linear-gradient(100deg, #7c3aed, #c026d3, #db2777); border: 1px solid rgba(255,255,255,.28); box-shadow: 0 8px 22px rgba(192,38,211,.28); }
     .app-link:active { transform: scale(.985); }
+    .app-icon { width: 30px; height: 30px; flex: 0 0 30px; object-fit: contain; border-radius: 7px; }
+    .app-icon-v2 { mix-blend-mode: screen; }
     .fallback { margin-top: 18px; border-top: 1px solid rgba(255,255,255,.12); padding-top: 18px; }
     .fallback summary { color: #d8b4fe; font-weight: 700; cursor: pointer; }
     .fallback input { width: 100%; margin-top: 12px; padding: 11px; border-radius: 12px; border: 1px solid rgba(255,255,255,.16); background: rgba(0,0,0,.28); color: white; }
@@ -49,9 +51,14 @@
     const fallback = document.getElementById("fallback");
     const subscription = document.getElementById("subscription");
     const labels = {
-      Happ: ["🟣 Открыть Happ", "https://happ.info/ru/"],
-      INCY: ["🔵 Открыть INCY", "https://incy.cc/"],
-      v2RayTun: ["🟢 Открыть v2RayTun", "https://play.google.com/store/apps/details?id=com.v2raytun.android"]
+      Happ: ["Открыть Happ", "https://happ.info/ru/"],
+      INCY: ["Открыть INCY", "https://incy.cc/"],
+      v2RayTun: ["Открыть v2RayTun", "https://play.google.com/store/apps/details?id=com.v2raytun.android"]
+    };
+    const icons = {
+      Happ: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAQ7SURBVEhLxZZNLCtrGMftrI6VlJlpTb9MZt5pBm3CQnwkmpAQSqYq1EKbUkSFNLQSYiFsbCxLGsGChZVY+koQgvhIfJY2DaUtIRZiY/HexHvOZG6d6c1Jrnv/iy7mn+f/yzzv8z7TlLS0NBzHse8RjuMpBEHo9Xrue6TX61MwDOM4jv0ecRz3vwIAAHK5nPgluVwOAECWTqdjGEawCILIyspKrE8OAABwHNfT0+P1ej0ej9fr7e3tzcnJYRiGZVmapg0GQ19fn+dTXq+3q6sLVYlDkgE0Go3RaIQiPT09AQBommZZliTJhoYGsXt+fq5Sqf4AkJWV1dLSIo5YWVnJzMzU6XQsyxIE4fF4xO7s7KxMJkOuoGQAHMdHRkaE+ng87na7KyoqtFoty7IYhk1NTQluIBDo6uoyGo3Z2dnikH8AzM/Po/poNNrR0XF0dGS1WpVKJXq/tbU15F5dXbW3t19eXlZVVWk0GnGIJAAAoFKpdnd3UXpbW9vx8fHHx4fBYKAoiqZpAEAwGIQQXlxc2O32cDj8/PwsnJAgSQBN0xzHvb6+Pj4+Op3Og4MDCOHJyYlWqwUAZGdnFxUVoc7YbLabmxsI4fr6+tdJlQSo1era2tpYLOZyuY6OjlArlpaWCIJA/WltbQ2FQg6HA6VDCP1+P4ZhCTnJADzPezye4+Pjn+cI4fDwcGpqKo7jMpmM53m32x0KhQR3YGAA4cWSBKA5WVxcFOohhAsLC/39/aOjo06ns6Sk5OzsTOw2NjaSJJkQIgkAAGi12tPTU3EE0tvb2/j4eDQaFT98f38vLi5GEyyWJICiqPz8/JeXF3EKhPD+/n5wcDAcDic8DwaDzKcSciQBKpXKZDIlpMTj8bGxsVgslvBcaoSSAeRyucvlEkdsbGxwHFdeXm6326urq6enp8Wuz+dLT09P2BPJABiGTUxMCPUPDw8Oh6OyslKhUJAk+ePHD7/fL7jX19c2m62uri7hGicDEASxvLyM6iORiMVi2d/f7+7uVigUAAClUrmzs4PcQCDA8/zZ2ZnT6fzapd8DGIahKApN4d3dncVi2d7ehhCWlpZqtVp0ySORCNpCJpMJ3ZXCwsKETScJoCiqoKDg4+MjEomYzeatrS0I4e3trU6no2lao9GUlZVBCC8vL2tqag4PD1GX/mCKlEplc3Pzw8NDU1OT0IrNzU10jxQKRU9PTzAYrK6uRukQwtXVVYVCIQ5B+j1ArVZbrdbOzs69vb2f5wjhzMwMWjVqtdr2qZOTE8H1+XxfF5EkQKfTZWRkTE5OCvUQwqGhIRzHkSuTyebm5sRuX1/f10UkCQAAkCS5v78vjrBarWhIAABqtTphi/A8jz5ECZIEAADMZnNzc7PVakW/eXl56AzRZ72+vl7s5ubmfj1hSQCSSqUiRWIYRnxRv7p/K/6lZIB/Rf8J4Lv/Xf8FFv4Z3aTxEYoAAAAASUVORK5CYII=",
+      INCY: "data:image/png;base64,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",
+      v2RayTun: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAHVSURBVEhL7ZSxyzlxHMc/1+FKKZMuxXgksVxkYjQwYcNlu8lCKauJkWS80Xglrm64ImXhf7BIUhQGMfj86vn2u9/j+nnOU0/PdK/p7v35ft6vb10dwP+gKMoY/SyWwBRLYIolMOU3BNlstlQqFYtFl8ul57lcrvQBwzAA4PV6y+Vys9kURTEYDD5VmLJcLvGDRCJBkmQySZL5fA4AgiAcj0eSIOL9fq9UKsaWL+h2u2Qzn8+TZDKZkCQQCPA8T55ns9lgMDifz4i43W4dDoex6BWiKJKKWq0GAOFw+PF4IOJoNAKAer2+Wq0URaFpGgBkWf62IJVKEUGv1wMASZLIK8/zhpMcx+12O0Rst9uG0Vf4/f7b7YaIw+HQ7XZfr1dEHI/HhmOZTGa/3yOiqqrky7+L3W5fr9dks9VqkevHYjH9AE3TnU6H5JIk2Wy2p/130DQNEU+n0+VyQURFUfRRKBRaLBaIeDgcBEF4Wnuffr9PLkiIx+Mkj0ajRImIm81GlmVN06bTKcdxxopXMAxDUVS1WtXbVVXVp41G45/2EyzLPrXoUM8AgMfjcTqdLMvm/+Lz+fRfSCQSKRQK+oiQTqcNPQSjjPBy8FNYAlMsgSmW4BN/AK5PJoIB/x2dAAAAAElFTkSuQmCC"
     };
 
     function androidIntent(deepLink, fallbackUrl) {
@@ -108,7 +115,14 @@
           const href = data.links[name];
           const link = document.createElement("a");
           link.className = "app-link";
-          link.textContent = label;
+          const icon = document.createElement("img");
+          icon.className = "app-icon" + (name === "v2RayTun" ? " app-icon-v2" : "");
+          icon.src = icons[name];
+          icon.alt = "";
+          icon.setAttribute("aria-hidden", "true");
+          const text = document.createElement("span");
+          text.textContent = label;
+          link.append(icon, text);
           link.href = isAndroid ? androidIntent(href, fallbackUrl) : href;
           link.rel = "noreferrer";
           apps.appendChild(link);
