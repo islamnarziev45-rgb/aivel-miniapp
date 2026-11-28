@@ -49,18 +49,17 @@
     const fallback = document.getElementById("fallback");
     const subscription = document.getElementById("subscription");
     const labels = {
-      Happ: ["🟣 Открыть Happ", "com.happproxy", "https://happ.info/ru/"],
-      INCY: ["🔵 Открыть INCY", "llc.itdev.incy", "https://incy.cc/"],
-      v2RayTun: ["🟢 Открыть v2RayTun", "com.v2raytun.android", "https://play.google.com/store/apps/details?id=com.v2raytun.android"]
+      Happ: ["🟣 Открыть Happ", "https://happ.info/ru/"],
+      INCY: ["🔵 Открыть INCY", "https://incy.cc/"],
+      v2RayTun: ["🟢 Открыть v2RayTun", "https://play.google.com/store/apps/details?id=com.v2raytun.android"]
     };
 
-    function androidIntent(deepLink, packageName, fallbackUrl) {
+    function androidIntent(deepLink, fallbackUrl) {
       const separator = deepLink.indexOf("://");
       if (separator < 0) return deepLink;
       const scheme = deepLink.slice(0, separator);
       const rest = deepLink.slice(separator + 3);
       return "intent://" + rest + "#Intent;scheme=" + scheme
-        + ";package=" + packageName
         + ";S.browser_fallback_url=" + encodeURIComponent(fallbackUrl)
         + ";end";
     }
@@ -105,12 +104,12 @@
         subscription.value = data.links.Happ.slice("happ://add/".length);
         const isAndroid = /Android/i.test(navigator.userAgent || "");
         for (const name of ["Happ", "INCY", "v2RayTun"]) {
-          const [label, packageName, fallbackUrl] = labels[name];
+          const [label, fallbackUrl] = labels[name];
           const href = data.links[name];
           const link = document.createElement("a");
           link.className = "app-link";
           link.textContent = label;
-          link.href = isAndroid ? androidIntent(href, packageName, fallbackUrl) : href;
+          link.href = isAndroid ? androidIntent(href, fallbackUrl) : href;
           link.rel = "noreferrer";
           apps.appendChild(link);
         }
