@@ -25,6 +25,7 @@
 
 - `GET /health`
 - `POST /miniapp/subscription` — состояние подписки и реферальные счётчики
+  - Для активного доступа ответ также содержит одноразовый `connect_handoff_token` (30 минут). Его использует HTTPS-страница `connect.html`; токен обменивается на ссылки импорта Happ/INCY/v2RayTun ровно один раз.
 - `POST /miniapp/referral` — регистрация Telegram start-параметра и счётчики
 - `POST /miniapp/trial` — ровно 2 дня / 5 ГБ
 - `POST /miniapp/create-payment` — периоды 30/90/180 дней, методы Platega 2 (СБП/QR) и 11 (банковские карты)
