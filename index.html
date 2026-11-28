@@ -625,7 +625,7 @@
         <div class="grid grid-cols-2 gap-3">
           <div class="glass-panel rounded-2xl p-3.5 flex flex-col justify-between min-h-[126px]">
             <div class="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-400/25 flex items-center justify-center text-sm">
-              📅
+              <svg class="w-4 h-4 text-purple-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="3"></rect><path d="M8 3.5v3M16 3.5v3M3.5 10h17M8 14h.01M12 14h.01M16 14h.01M8 17h.01"></path></svg>
             </div>
             <div class="my-2">
               <div class="flex items-baseline gap-1.5">
@@ -795,31 +795,33 @@
             <button id="clientTabIncy" onclick="switchClientApp('INCY')" class="py-2 rounded-xl text-xs font-semibold text-slate-400 transition">INCY</button>
           </div>
 
-          <div class="glass-panel rounded-2xl p-4 space-y-3">
-            <div class="flex items-center gap-2.5">
-              <span class="w-6 h-6 rounded-full bg-purple-500/25 border border-purple-400/40 text-xs font-extrabold text-purple-200 flex items-center justify-center">1</span>
+          <div class="grid grid-cols-2 gap-3 items-stretch">
+          <div class="glass-panel rounded-2xl p-3 sm:p-4 space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 shrink-0 rounded-full bg-purple-500/25 border border-purple-400/40 text-xs font-extrabold text-purple-200 flex items-center justify-center">1</span>
               <span class="text-sm font-bold text-white" data-i18n="step1App">Скачайте приложение</span>
             </div>
-            <p id="clientAppHint" class="text-xs text-slate-400 leading-relaxed">
+            <p id="clientAppHint" class="text-[11px] sm:text-xs text-slate-400 leading-relaxed">
               Установите клиент Happ для выбранной платформы, чтобы подключить профиль AIVEL VPN.
             </p>
-            <button id="downloadClientBtn" onclick="downloadClientAction()" class="alive-cta alive-cta-green w-full py-2.5 px-4 rounded-xl text-xs font-extrabold text-white transition">
+            <button id="downloadClientBtn" onclick="downloadClientAction()" class="alive-cta alive-cta-green w-full py-2 px-2 rounded-xl text-[11px] sm:text-xs font-extrabold text-white transition">
               ⬇ <span id="downloadClientBtnText">Скачать Happ</span>
             </button>
           </div>
 
-          <div class="glass-panel rounded-2xl p-4 space-y-3">
-            <div class="flex items-center gap-2.5">
-              <span class="w-6 h-6 rounded-full bg-pink-500/25 border border-pink-400/40 text-xs font-extrabold text-pink-200 flex items-center justify-center">2</span>
+          <div class="glass-panel rounded-2xl p-3 sm:p-4 space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 shrink-0 rounded-full bg-pink-500/25 border border-pink-400/40 text-xs font-extrabold text-pink-200 flex items-center justify-center">2</span>
               <span class="text-sm font-bold text-white" data-i18n="step2Config">Подключите конфиг</span>
             </div>
-            <p class="text-xs text-slate-400 leading-relaxed" data-i18n="autoConfigHint">
+            <p class="text-[11px] sm:text-xs text-slate-400 leading-relaxed" data-i18n="autoConfigHint">
               Настройки профиля подставятся автоматически после нажатия кнопки подключения.
             </p>
-            <button onclick="connectConfigAction()" class="alive-cta w-full py-3 px-4 rounded-xl text-xs font-extrabold text-white flex items-center justify-center gap-2">
+            <button onclick="connectConfigAction()" class="alive-cta w-full py-2.5 px-2 sm:px-4 rounded-xl text-[11px] sm:text-xs font-extrabold text-white flex items-center justify-center gap-2">
               <span>⚡</span>
               <span data-i18n="connectNow">Подключиться</span>
             </button>
+          </div>
           </div>
 
           <button onclick="markSetupDone()" class="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition" data-i18n="setupDoneBtn">
@@ -948,6 +950,7 @@
             <div class="rounded-xl bg-black/30 p-2.5 border border-white/5">
               <div class="text-slate-400 text-[11px]" data-i18n="expiresIn">Срок действия</div>
               <div class="font-bold text-white mt-0.5"><span id="profileDaysLeft">2</span> <span data-i18n="daysWord">дня</span></div>
+              <div id="profileExpiryDate" class="hidden text-[10px] text-slate-400 mt-0.5"></div>
             </div>
             <div class="rounded-xl bg-black/30 p-2.5 border border-white/5">
               <div class="text-slate-400 text-[11px]" data-i18n="trafficLabel">Трафик</div>
@@ -1405,6 +1408,7 @@
       subscriptionUrl: "",
       subscriptionStatus: "loading",
       subscriptionType: "trial",
+      subscriptionExpiryLabel: "",
       selectedClient: "Happ",
       telegramUserId: ""
     };
@@ -1472,6 +1476,7 @@
         inactiveStatus: 'Не активна',
         planTrial: 'Пробный период',
         planSubscription: 'Подписка',
+        dateUntil: 'до',
         homeTrialTitle: 'AIVEL VPN • Пробный период',
         homeSubscriptionTitle: 'AIVEL VPN • Подписка',
         expiresIn: 'Срок действия',
@@ -1557,6 +1562,7 @@
         inactiveStatus: 'Faol emas',
         planTrial: 'Sinov muddati',
         planSubscription: 'Obuna',
+        dateUntil: 'gacha',
         homeTrialTitle: 'AIVEL VPN • Sinov muddati',
         homeSubscriptionTitle: 'AIVEL VPN • Obuna',
         expiresIn: 'Amal qilish muddati',
@@ -1642,6 +1648,7 @@
         inactiveStatus: 'Ғайрифаъол',
         planTrial: 'Давраи озмоишӣ',
         planSubscription: 'Обуна',
+        dateUntil: 'то',
         homeTrialTitle: 'AIVEL VPN • Давраи озмоишӣ',
         homeSubscriptionTitle: 'AIVEL VPN • Обуна',
         expiresIn: 'Мӯҳлати амал',
@@ -1727,6 +1734,7 @@
         inactiveStatus: 'Активдүү эмес',
         planTrial: 'Сыноо мөөнөтү',
         planSubscription: 'Жазылуу',
+        dateUntil: 'чейин',
         homeTrialTitle: 'AIVEL VPN • Сыноо мөөнөтү',
         homeSubscriptionTitle: 'AIVEL VPN • Жазылуу',
         expiresIn: 'Жарактуулук мөөнөтү',
@@ -1812,6 +1820,7 @@
         inactiveStatus: 'Белсенді емес',
         planTrial: 'Сынақ мерзімі',
         planSubscription: 'Жазылым',
+        dateUntil: 'дейін',
         homeTrialTitle: 'AIVEL VPN • Сынақ мерзімі',
         homeSubscriptionTitle: 'AIVEL VPN • Жазылым',
         expiresIn: 'Қолданылу мерзімі',
@@ -1852,6 +1861,27 @@
       return data;
     }
 
+    function formatSubscriptionExpiry(row, data, remainingSeconds) {
+      const raw = row.expires_at ?? data.expires_at ?? row.expire ?? data.expire;
+      let date = null;
+      if (raw !== undefined && raw !== null && raw !== "") {
+        if (typeof raw === "number" || /^\\d{9,13}$/.test(String(raw))) {
+          const timestamp = Number(raw);
+          date = new Date(timestamp < 1e12 ? timestamp * 1000 : timestamp);
+        } else {
+          date = new Date(raw);
+        }
+      }
+      if ((!date || Number.isNaN(date.getTime())) && remainingSeconds > 0) {
+        date = new Date(Date.now() + remainingSeconds * 1000);
+      }
+      if (!date || Number.isNaN(date.getTime())) return "";
+      const locale = { ru: "ru-RU", uz: "uz-UZ", tg: "tg-TJ", kg: "ky-KG", kz: "kk-KZ" }[appState.lang] || "ru-RU";
+      const options = { day: "numeric", month: "long" };
+      if (date.getFullYear() !== new Date().getFullYear()) options.year = "numeric";
+      return new Intl.DateTimeFormat(locale, options).format(date);
+    }
+
     function updateSubscriptionStatusBadge(badgeId, labelId, isActive, labels) {
       const badge = document.getElementById(badgeId);
       const label = document.getElementById(labelId);
@@ -1876,6 +1906,8 @@
       });
       const seconds = Number(row.remaining_seconds ?? data.remaining_seconds ?? 0);
       const days = Math.max(0, Math.ceil(seconds / 86400));
+      const expiryLabel = formatSubscriptionExpiry(row, data, seconds);
+      appState.subscriptionExpiryLabel = expiryLabel;
       const bytes = Number(row.data_limit ?? data.data_limit ?? (accessType === "trial" ? 5 * 1024 ** 3 : 0));
       const limit = Math.max(0, Math.round(bytes / (1024 ** 3)));
       const limitLabel = bytes > 0 ? String(limit) : "∞";
@@ -1899,7 +1931,12 @@
       const usedScreen = document.getElementById("trafficSpentVal"); if (usedScreen) usedScreen.textContent = usedLabel;
       const plan = document.getElementById("profilePlanName"); if (plan) plan.textContent = planTypeText;
       const homeType = document.getElementById("homeAccessTypeTitle"); if (homeType) homeType.textContent = homeTypeTitle;
-      const homePlanType = document.getElementById("homePlanTypeLabel"); if (homePlanType) homePlanType.textContent = planTypeText;
+      const homePlanType = document.getElementById("homePlanTypeLabel"); if (homePlanType) homePlanType.textContent = isActive && expiryLabel ? `${planTypeText} · ${labels.dateUntil} ${expiryLabel}` : planTypeText;
+      const profileExpiryDate = document.getElementById("profileExpiryDate");
+      if (profileExpiryDate) {
+        profileExpiryDate.textContent = expiryLabel ? `${labels.dateUntil} ${expiryLabel}` : "";
+        profileExpiryDate.classList.toggle("hidden", !isActive || !expiryLabel);
+      }
       updateSubscriptionStatusBadge("homeTrialPill", "homeStatusLabel", isActive, labels);
       updateSubscriptionStatusBadge("profileStatusBadge", "profileStatusLabel", isActive, labels);
       updateSubscriptionStatusBadge("profileKeyStatusBadge", "profileKeyStatusLabel", isActive, labels);
@@ -2407,7 +2444,12 @@
       const planType = appState.subscriptionType === "trial" ? dict.planTrial : dict.planSubscription;
       const homeTitle = appState.subscriptionType === "trial" ? dict.homeTrialTitle : dict.homeSubscriptionTitle;
       const profilePlan = document.getElementById("profilePlanName"); if (profilePlan) profilePlan.textContent = planType;
-      const homePlan = document.getElementById("homePlanTypeLabel"); if (homePlan) homePlan.textContent = planType;
+      const homePlan = document.getElementById("homePlanTypeLabel"); if (homePlan) homePlan.textContent = active && appState.subscriptionExpiryLabel ? `${planType} · ${dict.dateUntil} ${appState.subscriptionExpiryLabel}` : planType;
+      const expiryDate = document.getElementById("profileExpiryDate");
+      if (expiryDate) {
+        expiryDate.textContent = appState.subscriptionExpiryLabel ? `${dict.dateUntil} ${appState.subscriptionExpiryLabel}` : "";
+        expiryDate.classList.toggle("hidden", !active || !appState.subscriptionExpiryLabel);
+      }
       const homeAccess = document.getElementById("homeAccessTypeTitle"); if (homeAccess) homeAccess.textContent = homeTitle;
       updateSubscriptionStatusBadge("homeTrialPill", "homeStatusLabel", active, dict);
       updateSubscriptionStatusBadge("profileStatusBadge", "profileStatusLabel", active, dict);
