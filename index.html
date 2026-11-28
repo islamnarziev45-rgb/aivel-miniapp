@@ -2251,6 +2251,7 @@
       }
 
       const handoffPage = new URL("connect.html", window.location.href);
+      handoffPage.searchParams.set("v", "icons-20261128");
       handoffPage.hash = token;
       const telegram = window.Telegram && window.Telegram.WebApp;
       if (telegram && typeof telegram.openLink === "function") {
